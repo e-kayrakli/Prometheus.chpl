@@ -75,8 +75,6 @@ module Prometheus {
           writeln(e.message());
           running.write(false);
         }
-        // for debugging only
-        running.write(false);
       }
     }
   }
@@ -85,11 +83,18 @@ module Prometheus {
     var name: string;
     var value: real;
     var labels: map(string, string);
+    var desc: string;
+    var pType: string; // prometheus type for the generated metric
 
     proc init(name: string, const ref labels: map(string, string),
-              register: bool) {
+              desc: string, register: bool) {
       this.name = name;
       this.labels = labels;
+
+      if desc=="" then
+        this.desc = "No description provided for " + name;
+      else
+        this.desc = desc;
       init this;
 
       if register then registry.register(this);
@@ -97,12 +102,11 @@ module Prometheus {
 
     // TODO : can't make this an iterator. Virtual dispatch with overridden
     // iterators doesn't work
-    proc collect() {
-      writeln("here");
-      /*var dummyFlag = true;*/
-      /*if dummyFlag {*/
-        /*throw new Error("Abstract method called");*/
-      /*}*/
+    proc collect() throws {
+      var dummyFlag = true;
+      if dummyFlag {
+        throw new Error("Abstract method called");
+      }
       return [new Sample(),];
     }
 
@@ -110,39 +114,45 @@ module Prometheus {
 
   class Counter: Collector {
 
-    proc init(name: string, register=true) {
+    proc init(name: string, desc="", register=true) {
       var labels: map(string, string);
-      super.init(name, labels, register);
+      super.init(name=name, labels=labels, desc=desc, register=register);
     }
 
     // TODO I shouldn't have needed this initializer?
     proc init(name: string, const ref labels: map(string, string),
-              register=true) {
-      super.init(name, labels, register);
+              desc="", register=true) {
+      super.init(name=name, labels=labels, desc=desc, register=register);
     }
+
+    proc postinit() { this.pType = "counter"; }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
 
     inline proc reset() { value = 0; }
 
-    override proc collect() {
-      return [new Sample(this.name, this.labels, this.value),];
+    override proc collect() throws {
+      return [new Sample(this.name, this.labels, this.value,
+                         this.desc, this.pType),];
     }
   }
 
   class Gauge: Collector {
 
-    proc init(name: string, register=true) {
+    proc init(name: string, desc="", register=true) {
       var labels: map(string, string);
-      super.init(name, labels, register);
+      super.init(name=name, labels=labels, desc=desc, register=register);
     }
 
     // TODO I shouldn't have needed this initializer?
     proc init(name: string, const ref labels: map(string, string),
-              register=true) {
-      super.init(name, labels, register);
+              desc="", register=true) {
+      super.init(name=name, labels=labels, desc=desc, register=register);
+
     }
+
+    proc postinit() { this.pType = "gauge"; }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
@@ -153,8 +163,9 @@ module Prometheus {
     inline proc set(v: real) { value = v; }
     inline proc reset() { value = 0; }
 
-    override proc collect() {
-      return [new Sample(this.name, this.labels, this.value),];
+    override proc collect() throws {
+      return [new Sample(this.name, this.labels, this.value,
+                         this.desc, this.pType),];
     }
   }
 
@@ -172,10 +183,14 @@ module Prometheus {
       var labels: map(string, string);
       labels["context"] = name;
 
-      this.minGauge = new shared Gauge("chpl_managedtimer_min", labels);
-      this.maxGauge = new shared Gauge("chpl_managedtimer_max", labels);
-      this.totGauge = new shared Gauge("chpl_managedtimer_tot", labels);
-      this.entryCounter = new shared Counter("chpl_managedtimer_cnt", labels);
+      this.minGauge = new shared Gauge("chpl_managedtimer_min", labels,
+                                       desc="Min time for the context");
+      this.maxGauge = new shared Gauge("chpl_managedtimer_max", labels,
+                                       desc="Max time for the context");
+      this.totGauge = new shared Gauge("chpl_managedtimer_tot", labels,
+                                       desc="Total time for the context");
+      this.entryCounter = new shared Counter("chpl_managedtimer_cnt", labels,
+                                             desc="Number of entries");
 
       init this;
     }
@@ -220,6 +235,7 @@ module Prometheus {
           const sample = collector.collect();
             /*writeln(sample);*/
             writer.write(sample);
+            writer.writeln();
           /*}*/
         }
         writer.close();
@@ -229,8 +245,9 @@ module Prometheus {
 
         mem.close();
       }
-      catch {
+      catch e {
         writeln("An error occured while collecting metrics.");
+        writeln(e.message());
       }
 
       return ret;
@@ -253,12 +270,16 @@ module Prometheus {
     var name: string;
     var labels: map(string, string);
     var value: real;
+    var desc: string;
+    var pType: string;
+
     var timestamp = -1;
 
-
     proc serialize(writer: fileWriter(?), ref serializer) throws {
-      writer.write(name);
+      writer.writef("# HELP %s %s\n", name, desc);
+      writer.writef("# TYPE %s %s\n", name, pType);
 
+      writer.write(name);
       if labels.size > 0 {
         writer.write("{");
         var firstDone = false;
