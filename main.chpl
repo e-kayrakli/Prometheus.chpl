@@ -6,7 +6,7 @@ promServer.start();
 
 /*var responseCounter = new shared Counter("chpl_prometheus_responses");*/
 /*var latencyGauge = new shared Gauge("chpl_prometheus_response_latency");*/
-var managedTimer = new shared Prometheus.ManagedTimer(context="prometheus_latency");
+var managedTimer = new shared Prometheus.ManagedTimer(name="prometheus_latency");
 
 
 /*server.registry.register(responseCounter);*/

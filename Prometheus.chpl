@@ -86,8 +86,10 @@ module Prometheus {
     var value: real;
     var labels: map(string, string);
 
-    proc init(name: string, register) {
+    proc init(name: string, const ref labels: map(string, string),
+              register: bool) {
       this.name = name;
+      this.labels = labels;
       init this;
 
       if register then registry.register(this);
@@ -108,7 +110,16 @@ module Prometheus {
 
   class Counter: Collector {
 
-    proc init(name: string, register=true) { super.init(name, register); }
+    proc init(name: string, register=true) {
+      var labels: map(string, string);
+      super.init(name, labels, register);
+    }
+
+    // TODO I shouldn't have needed this initializer?
+    proc init(name: string, const ref labels: map(string, string),
+              register=true) {
+      super.init(name, labels, register);
+    }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
@@ -122,7 +133,16 @@ module Prometheus {
 
   class Gauge: Collector {
 
-    proc init(name: string, register=true) { super.init(name, register); }
+    proc init(name: string, register=true) {
+      var labels: map(string, string);
+      super.init(name, labels, register);
+    }
+
+    // TODO I shouldn't have needed this initializer?
+    proc init(name: string, const ref labels: map(string, string),
+              register=true) {
+      super.init(name, labels, register);
+    }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
@@ -140,26 +160,24 @@ module Prometheus {
 
   // TODO can't make this a class+context, so can't make it extend Collector...
   class ManagedTimer: contextManager {
-    var context: string;
+    var name: string;
 
     var timer: stopwatch;
     var minGauge, maxGauge, totGauge: shared Gauge;
     var entryCounter: shared Counter;
 
-    proc init(context: string) {
-      this.context = context;
+    proc init(name: string) {
+      this.name = name;
 
-      this.minGauge = new shared Gauge("chpl_managedtimer_min");
-      this.maxGauge = new shared Gauge("chpl_managedtimer_max");
-      this.totGauge = new shared Gauge("chpl_managedtimer_tot");
-      this.entryCounter = new shared Counter("chpl_managedtimer_cnt");
+      var labels: map(string, string);
+      labels["context"] = name;
+
+      this.minGauge = new shared Gauge("chpl_managedtimer_min", labels);
+      this.maxGauge = new shared Gauge("chpl_managedtimer_max", labels);
+      this.totGauge = new shared Gauge("chpl_managedtimer_tot", labels);
+      this.entryCounter = new shared Counter("chpl_managedtimer_cnt", labels);
 
       init this;
-
-      this.minGauge.labels["context"] = context;
-      this.maxGauge.labels["context"] = context;
-      this.totGauge.labels["context"] = context;
-      this.entryCounter.labels["context"] = context;
     }
 
     // this is a mock context manager for the time being
