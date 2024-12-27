@@ -11,7 +11,7 @@ var managedTimer = new shared Prometheus.ManagedTimer(context="prometheus_latenc
 
 /*server.registry.register(responseCounter);*/
 /*server.registry.register(latencyGauge);*/
-Prometheus.registry.register(managedTimer);
+/*Prometheus.registry.register(managedTimer);*/
 
 /*use Time;*/
 

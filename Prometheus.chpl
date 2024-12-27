@@ -81,7 +81,18 @@ module Prometheus {
     }
   }
 
-  class CollectorBase {
+  class Collector {
+    var name: string;
+    var value: real;
+    var labels: map(string, string);
+
+    proc init(name: string, register) {
+      this.name = name;
+      init this;
+
+      if register then registry.register(this);
+    }
+
     // TODO : can't make this an iterator. Virtual dispatch with overridden
     // iterators doesn't work
     proc collect() {
@@ -92,22 +103,12 @@ module Prometheus {
       /*}*/
       return [new Sample(),];
     }
-  }
-
-  class Collector: CollectorBase {
-    var name: string;
-    var value: real;
-    var labels: map(string, string);
-
-    proc init(name: string) {
-      this.name = name;
-    }
 
   }
 
   class Counter: Collector {
 
-    proc init(name: string) { super.init(name); }
+    proc init(name: string, register=true) { super.init(name, register); }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
@@ -121,7 +122,7 @@ module Prometheus {
 
   class Gauge: Collector {
 
-    proc init(name: string) { super.init(name); }
+    proc init(name: string, register=true) { super.init(name, register); }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
@@ -137,15 +138,13 @@ module Prometheus {
     }
   }
 
-  // TODO can't make this a class+context, so can't make it extend CollectorBase...
-  class ManagedTimer: CollectorBase, contextManager {
+  // TODO can't make this a class+context, so can't make it extend Collector...
+  class ManagedTimer: contextManager {
     var context: string;
 
     var timer: stopwatch;
     var minGauge, maxGauge, totGauge: shared Gauge;
     var entryCounter: shared Counter;
-
-    var collectors: list(shared Collector);
 
     proc init(context: string) {
       this.context = context;
@@ -161,12 +160,6 @@ module Prometheus {
       this.maxGauge.labels["context"] = context;
       this.totGauge.labels["context"] = context;
       this.entryCounter.labels["context"] = context;
-
-
-      collectors.pushBack(minGauge);
-      collectors.pushBack(maxGauge);
-      collectors.pushBack(totGauge);
-      collectors.pushBack(entryCounter);
     }
 
     // this is a mock context manager for the time being
@@ -187,31 +180,14 @@ module Prometheus {
       totGauge.inc(elapsed);
       entryCounter.inc();
     }
-
-    override proc collect() {
-      return [minGauge.collect()[0], maxGauge.collect()[0],
-              totGauge.collect()[0], entryCounter.collect()[0]];
-
-    }
-
-    /*override iter collect() {*/
-      /*try {*/
-        /*for collector in collectors {*/
-          /*for sample in collector.collect() {*/
-            /*yield sample;*/
-          /*}*/
-        /*}*/
-      /*}*/
-      /*catch {*/
-        /*halt("An iterator has thrown?");*/
-      /*}*/
-    /*}*/
   }
 
 
   record collectorRegistry {
 
-    var collectors: list(shared CollectorBase);
+    // TODO I want to add `this` from the Collector initializer. That makes me
+    // tied to `borrowed`, whereas I feel like I need `shared` here.
+    var collectors: list(borrowed Collector);
 
     proc collectMetrics() {
       var ret: bytes;
@@ -243,13 +219,13 @@ module Prometheus {
     }
 
     proc ref register(c) {
-      if !collectors.contains(c: shared CollectorBase) {
+      if !collectors.contains(c: Collector) {
         collectors.pushBack(c);
       }
     }
 
     proc unregister(c) {
-      if !collectors.contains(c: shared CollectorBase) {
+      if !collectors.contains(c: Collector) {
         collectors.remove(c);
       }
     }
