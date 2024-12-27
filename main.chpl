@@ -6,6 +6,7 @@ Prometheus.start();
 /*promServer.start();*/
 
 var managedTimer = new shared Prometheus.ManagedTimer(name="prometheus_latency");
+var usedMemGauge = new shared Prometheus.UsedMemGauge();
 
 while true {
   managedTimer.enterContext();

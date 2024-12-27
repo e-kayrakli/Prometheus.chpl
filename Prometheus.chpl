@@ -5,6 +5,8 @@ module Prometheus {
   use Time;
   use Socket;
   use OS.POSIX;
+  use MemDiagnostics;
+
 
   config const debugPrometheus = true;
   config const acceptTimeout = 20;
@@ -235,6 +237,21 @@ module Prometheus {
     }
   }
 
+  class UsedMemGauge: Gauge {
+    proc init(register=true) {
+      var labels: map(string, string);
+      super.init(name="chpl_mem_used", labels=labels,
+                 desc="Amount of memory used in Locales[0] as reported by "+
+                      "the Chapel runtime's memory tracking (--memTrack)",
+                 register=register);
+    }
+
+    override proc collect() throws {
+      this.value = memoryUsed();
+
+      return super.collect();
+    }
+  }
 
   record collectorRegistry {
 
