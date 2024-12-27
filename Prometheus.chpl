@@ -191,6 +191,68 @@ module Prometheus {
     }
   }
 
+  class Histogram: Collector {
+    var numBuckets = 0;
+    var buckets: [0..#numBuckets] real;
+    var counts: [buckets.domain] int;
+    var allSum: real;
+    var allCount: int;
+
+    proc init(name: string, buckets: [], desc="", register=true) {
+      var labels: map(string, string);
+      super.init(name=name, labels=labels, desc=desc, register=register);
+      this.numBuckets = buckets.size;
+
+      init this;
+
+      this.buckets = buckets;
+    }
+
+    proc init(name: string, buckets,  desc="", register=true)
+        where !isArray(buckets) {
+
+      const bucketsArr = buckets;
+      init(name=name, buckets=bucketsArr, desc=desc, register=register);
+    }
+
+    proc observe(v: real) {
+      for (bucket, count) in zip(buckets, counts) {
+        if v<=bucket then count += 1;
+      }
+      allSum += v;
+      allCount += 1;
+    }
+
+    override proc collect() throws {
+      var samples: [0..#counts.size+3] Sample; // +3 for +Inf, sum, and count
+      const bucketName = this.name+"_bucket";
+      var allLabels = labels;
+      for (count, bucket, sample) in zip(counts, buckets,
+                                         samples[buckets.domain]) {
+        allLabels["le"] = bucket:string;
+        sample = new Sample(bucketName, allLabels, count, this.desc,
+                            this.pType);
+      }
+
+      // +Inf
+      allLabels["le"] = "+Inf";
+      samples[counts.size] = new Sample(bucketName, allLabels, allCount,
+                                        this.desc, this.pType);
+
+      // sum
+      const sumName = this.name+"_sum";
+      samples[counts.size+1] = new Sample(sumName, labels, allSum,
+                                          this.desc, this.pType);
+
+      // count
+      const countName = this.name+"_count";
+      samples[counts.size+2] = new Sample(countName, labels, allCount,
+                                          this.desc, this.pType);
+
+      return samples;
+    }
+  }
+
   // TODO can't make this a class+context, so can't make it extend Collector...
   class ManagedTimer: contextManager {
     var name: string;
@@ -245,6 +307,17 @@ module Prometheus {
                       "the Chapel runtime's memory tracking (--memTrack)",
                  register=register);
     }
+
+    // TODO I wanted to have these `compilerError`, but apparently we compile
+    // them and can't use that in lieu of ` = delete` in CPP
+    override proc inc(v: real) {writeln("Can't call UsedMemGauge.inc");}
+    override proc inc()        {writeln("Can't call UsedMemGauge.inc");}
+
+    override proc dec(v: real) {writeln("Can't call UsedMemGauge.dec");}
+    override proc dec()        {writeln("Can't call UsedMemGauge.dec");}
+
+    override proc set(v: real) {writeln("Can't call UsedMemGauge.set");}
+    override proc reset()      {writeln("Can't call UsedMemGauge.reset");}
 
     override proc collect() throws {
       this.value = memoryUsed();

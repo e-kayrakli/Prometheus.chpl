@@ -1,4 +1,5 @@
 import Prometheus;
+use Random;
 
 Prometheus.start();
 
@@ -6,14 +7,23 @@ Prometheus.start();
 /*promServer.start();*/
 
 var managedTimer = new shared Prometheus.ManagedTimer(name="prometheus_latency");
+// TODO this shows a potential leak?
 var usedMemGauge = new shared Prometheus.UsedMemGauge();
+
+
+var histogramTest = new shared Prometheus.Histogram(name="histogram_test",
+                                                    buckets=[i in 1..10] i/10.0);
+
+
+var rs = new randomStream(real);
 
 while true {
   managedTimer.enterContext();
   var A, B, C: [1..100000] real;
-  B = 1;
-  C = 2;
+  B = rs.next();
+  C = rs.next();
   A = B + C;
-  assert((+ reduce A) == A.size*3);
+  histogramTest.observe(A[1]);
+  assert((+ reduce A) > 0);
   managedTimer.exitContext();
 }
