@@ -8,27 +8,39 @@ module Prometheus {
 
   config const debugPrometheus = true;
   config const acceptTimeout = 20;
-  config const port: uint(16) = 8888;
 
-  var registry: collectorRegistry;
+  private var registry: collectorRegistry;
+  private var server: metricServer;
+  private var started = false;
+
+  proc start(host="127.0.0.1", port=8888:uint(16)) {
+    server = new metricServer(host, port);
+    server.start();
+    started = true;
+  }
+
+  proc stop() {
+    server.stop();
+    started = false;
+  }
 
   record metricServer {
-    var listener: tcpListener;
-    var running: atomic bool;
+    var host: string;
+    var port: uint(16);
 
-    proc init() {
-      // TODO wanted to catch this or throw. Neither is supported right now.
-      try! {
-        this.listener = listen(ipAddr.create(host="127.0.0.1", port=port));
-        writeln("created the listener");
-      }
+    var running: atomic bool = false;
+
+    proc init() { }
+
+    proc init(host:string, port:uint(16)) {
+      this.host = host;
+      this.port = port;
     }
 
-    proc ref deinit() {
-      stop();
-    }
+    proc ref deinit() { this.stop(); }
 
     proc ref start() {
+      // TODO wanted to catch this or throw. Neither is supported right now.
       this.running.write(true);
       begin with (ref this) { serve(); }
     }
@@ -39,6 +51,11 @@ module Prometheus {
     }
 
     proc ref serve() {
+      var listener: tcpListener;
+      try! {
+        listener = listen(ipAddr.create(host="127.0.0.1", port=port));
+        writeln("created the listener");
+      }
       while running.read() {
         try {
           // TODO accept that takes a real argument is not working
@@ -88,6 +105,9 @@ module Prometheus {
 
     proc init(name: string, const ref labels: map(string, string),
               desc: string, register: bool) {
+      // TODO wanted to throw
+      if !started then halt("Promotheus.start() hasn't been called yet");
+
       this.name = name;
       this.labels = labels;
 
