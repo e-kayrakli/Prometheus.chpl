@@ -16,9 +16,9 @@ module Prometheus {
   private var started = false;
 
   proc start(host="127.0.0.1", port=8888:uint(16)) {
+    started = true;
     server = new metricServer(host, port);
     server.start();
-    started = true;
   }
 
   proc stop() {
@@ -32,16 +32,20 @@ module Prometheus {
 
     var running: atomic bool = false;
 
+    var responseGauge: shared Gauge?;
+
     proc init() { }
 
     proc init(host:string, port:uint(16)) {
       this.host = host;
       this.port = port;
+      this.responseGauge = new shared Gauge("chpl_prometheus_response_time");
     }
 
     proc ref deinit() { this.stop(); }
 
     proc ref start() {
+      assert(this.responseGauge != nil); // TODO
       // TODO wanted to catch this or throw. Neither is supported right now.
       this.running.write(true);
       begin with (ref this) { serve(); }
@@ -53,15 +57,22 @@ module Prometheus {
     }
 
     proc ref serve() {
+      var t: stopwatch;
+
       var listener: tcpListener;
       try! {
         listener = listen(ipAddr.create(host="127.0.0.1", port=port));
         writeln("created the listener");
       }
+
       while running.read() {
+        responseGauge!.set(t.elapsed()*1000);
+        t.clear();
         try {
           // TODO accept that takes a real argument is not working
           var comm = listener.accept(new struct_timeval(acceptTimeout, 0));
+
+          t.start();
           var socketFile = new file(comm.socketFd);
           var writer = socketFile.writer();
 
@@ -80,14 +91,19 @@ module Prometheus {
             writeln(data);
           }
 
-          writer.write("HTTP/1.1 200 OK\r\n");
-          writer.writef("Content-Length: %i\r\n", data.size);
-          writer.write("Content-Type: text/plain; version=0.0.4\r\n");
+          param header = "HTTP/1.1 200 OK\r\n" +
+                        "Content-Length: %i\r\n" +
+                        "Content-Type: text/plain; version=0.0.4\r\n" +
+                        "\r\n";
+
+          writer.writef(header, data.size);
           writer.write("\r\n");
           writer.write(data);
           writer.write("\r\n");
 
           writer.close();
+
+          defer { t.stop(); }
         }
         catch e {
           writeln("Error caught serving prometheus. Stopping server.");
@@ -95,6 +111,10 @@ module Prometheus {
           running.write(false);
         }
       }
+    }
+
+    proc generateResponse() {
+
     }
   }
 
