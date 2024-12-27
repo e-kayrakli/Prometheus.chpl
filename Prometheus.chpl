@@ -191,6 +191,8 @@ module Prometheus {
     }
   }
 
+  // per specs, we SHOULD make this a context manager, but class-based context
+  // managers don't work
   class Histogram: Collector {
     var numBuckets = 0;
     var buckets: [0..#numBuckets] real;
@@ -215,6 +217,12 @@ module Prometheus {
       init(name=name, buckets=bucketsArr, desc=desc, register=register);
     }
 
+    proc postinit() { this.pType = "histogram"; }
+
+    inline proc bucketName do return this.name+"_bucket";
+    inline proc sumName do return this.name+"_sum";
+    inline proc countName do return this.name+"_count";
+
     proc observe(v: real) {
       for (bucket, count) in zip(buckets, counts) {
         if v<=bucket then count += 1;
@@ -225,29 +233,32 @@ module Prometheus {
 
     override proc collect() throws {
       var samples: [0..#counts.size+3] Sample; // +3 for +Inf, sum, and count
-      const bucketName = this.name+"_bucket";
+      const locBucketName = bucketName;
       var allLabels = labels;
+      var firstDone = false;
       for (count, bucket, sample) in zip(counts, buckets,
                                          samples[buckets.domain]) {
         allLabels["le"] = bucket:string;
-        sample = new Sample(bucketName, allLabels, count, this.desc,
-                            this.pType);
+
+        if !firstDone {
+          sample = new Sample(locBucketName, allLabels, count, this.desc,
+                              this.pType);
+          firstDone = true;
+        }
+        else {
+          sample = new Sample(locBucketName, allLabels, count);
+        }
       }
 
       // +Inf
       allLabels["le"] = "+Inf";
-      samples[counts.size] = new Sample(bucketName, allLabels, allCount,
-                                        this.desc, this.pType);
+      samples[counts.size] = new Sample(locBucketName, allLabels, allCount);
 
       // sum
-      const sumName = this.name+"_sum";
-      samples[counts.size+1] = new Sample(sumName, labels, allSum,
-                                          this.desc, this.pType);
+      samples[counts.size+1] = new Sample(sumName, labels, allSum);
 
       // count
-      const countName = this.name+"_count";
-      samples[counts.size+2] = new Sample(countName, labels, allCount,
-                                          this.desc, this.pType);
+      samples[counts.size+2] = new Sample(countName, labels, allCount);
 
       return samples;
     }
@@ -337,19 +348,19 @@ module Prometheus {
 
       try {
         var mem = openMemFile();
-        var writer = mem.writer();
-        var reader = mem.reader();
 
+        // write to memory
+        var writer = mem.writer();
         for collector in collectors {
-          /*for sample in collector.collect() {*/
-          const sample = collector.collect();
-            /*writeln(sample);*/
+          for sample in collector.collect() {
             writer.write(sample);
-            writer.writeln();
-          /*}*/
+          }
+          writer.writeln();
         }
         writer.close();
 
+        // read into a bytes
+        var reader = mem.reader();
         ret = reader.readAll(bytes);
         reader.close();
 
@@ -380,14 +391,14 @@ module Prometheus {
     var name: string;
     var labels: map(string, string);
     var value: real;
-    var desc: string;
-    var pType: string;
+    var desc: string = "";
+    var pType: string = "";
 
     var timestamp = -1;
 
     proc serialize(writer: fileWriter(?), ref serializer) throws {
-      writer.writef("# HELP %s %s\n", name, desc);
-      writer.writef("# TYPE %s %s\n", name, pType);
+      if desc.size>0 then writer.writef("# HELP %s %s\n", name, desc);
+      if pType.size>0 then writer.writef("# TYPE %s %s\n", name, pType);
 
       writer.write(name);
       if labels.size > 0 {
