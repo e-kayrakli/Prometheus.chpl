@@ -3,6 +3,83 @@ module Prometheus {
   use List, Map;
   use IO;
   use Time;
+  use Socket;
+  use OS.POSIX;
+
+  config const debugPrometheus = true;
+  config const acceptTimeout = 20;
+  config const port: uint(16) = 8888;
+
+  var registry: collectorRegistry;
+
+  record metricServer {
+    var listener: tcpListener;
+    var running: atomic bool;
+
+    proc init() {
+      // TODO wanted to catch this or throw. Neither is supported right now.
+      try! {
+        this.listener = listen(ipAddr.create(host="127.0.0.1", port=port));
+        writeln("created the listener");
+      }
+    }
+
+    proc ref deinit() {
+      stop();
+    }
+
+    proc ref start() {
+      this.running.write(true);
+      begin with (ref this) { serve(); }
+    }
+
+    proc ref stop() {
+      // TODO do we need to make sure that the server moves past accept()?
+      running.write(false);
+    }
+
+    proc ref serve() {
+      while running.read() {
+        try {
+          // TODO accept that takes a real argument is not working
+          var comm = listener.accept(new struct_timeval(acceptTimeout, 0));
+          var socketFile = new file(comm.socketFd);
+          var writer = socketFile.writer();
+
+          if debugPrometheus {
+            var reader = socketFile.reader();
+            const msg = reader.readThrough("\r\n\r\n");
+            writeln(msg);
+          }
+
+          // TODO check for the message and confirm it is from prometheus
+
+          var data = registry.collectMetrics();
+
+          if debugPrometheus {
+            writeln("Response:");
+            writeln(data);
+          }
+
+          writer.write("HTTP/1.1 200 OK\r\n");
+          writer.writef("Content-Length: %i\r\n", data.size);
+          writer.write("Content-Type: text/plain; version=0.0.4\r\n");
+          writer.write("\r\n");
+          writer.write(data);
+          writer.write("\r\n");
+
+          writer.close();
+        }
+        catch e {
+          writeln("Error caught serving prometheus. Stopping server.");
+          writeln(e.message());
+          running.write(false);
+        }
+        // for debugging only
+        running.write(false);
+      }
+    }
+  }
 
   class CollectorBase {
     // TODO : can't make this an iterator. Virtual dispatch with overridden
@@ -132,7 +209,7 @@ module Prometheus {
   }
 
 
-  class CollectorRegistry {
+  record collectorRegistry {
 
     var collectors: list(shared CollectorBase);
 
@@ -147,7 +224,7 @@ module Prometheus {
         for collector in collectors {
           /*for sample in collector.collect() {*/
           const sample = collector.collect();
-            writeln(sample);
+            /*writeln(sample);*/
             writer.write(sample);
           /*}*/
         }
@@ -165,7 +242,7 @@ module Prometheus {
       return ret;
     }
 
-    proc register(c) {
+    proc ref register(c) {
       if !collectors.contains(c: shared CollectorBase) {
         collectors.pushBack(c);
       }
