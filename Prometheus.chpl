@@ -92,20 +92,21 @@ module Prometheus {
 
           var data = registry.collectMetrics();
 
-          if debugPrometheus {
-            writeln("Response:");
-            writeln(data);
-          }
+          /*if debugPrometheus {*/
+            /*writeln("Response:");*/
+            /*writeln(data);*/
+          /*}*/
 
-          param header = "HTTP/1.1 200 OK\r\n" +
-                        "Content-Length: %i\r\n" +
-                        "Content-Type: text/plain; version=0.0.4\r\n" +
-                        "\r\n";
+          // TODO I couldn't put \r in the end after the refactor. Why?
+          param header = "HTTP/1.1 200 OK\n" +
+                        "Content-Length: %i\n" +
+                        "Content-Type: text/plain; version=0.0.4\n" +
+                        "\n";
 
           writer.writef(header, data.size);
-          writer.write("\r\n");
+          writer.write("\n");
           writer.write(data);
-          writer.write("\r\n");
+          writer.write("\n");
 
           writer.close();
 
@@ -558,6 +559,7 @@ module Prometheus {
 
       writer.write(name);
       if labelMap.size > 0 {
+      /*if false {*/
         writer.write("{");
         var firstDone = false;
         /*for (key, value) in zip(labels.domain, labels) {*/
