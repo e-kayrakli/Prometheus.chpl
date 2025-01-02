@@ -296,9 +296,14 @@ module Prometheus {
 
     override proc collect() throws {
       if isParent {
-        var dummyMap: map(string, string);
-        return [new Sample(this.name, dummyMap, this.value,
-                           this.desc, this.pType),];
+        // TODO can't directly return this. got an internal compiler error
+        var ret = [child in children.values()] new Sample(this.name,
+                                                          child.labelMap,
+                                                          child.value,
+                                                          this.desc,
+                                                          this.pType);
+
+        return ret;
       }
       else {
         return [new Sample(this.name, this.labelMap, this.value,
