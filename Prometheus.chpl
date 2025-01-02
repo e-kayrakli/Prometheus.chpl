@@ -130,7 +130,8 @@ module Prometheus {
     var desc: string;
     var pType: string; // prometheus type for the generated metric
 
-    var labelNames: [1..0] string;
+    var labelNamesDom = {1..0};
+    var labelNames: [labelNamesDom] string;
     var children: map(bytes, shared Collector?);
     var isParent: bool;
 
@@ -172,6 +173,7 @@ module Prometheus {
       else
         this.desc = desc;
 
+      this.labelNamesDom = labelNames.domain;
       this.labelNames = labelNames;
       this.isParent = labelNames.size>0;
 
