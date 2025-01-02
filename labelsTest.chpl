@@ -9,7 +9,8 @@ var labeledGauge = new shared Gauge("test_metric",
 
 while true {
   var labelMap = ["label1"=>"foo", "label2"=>"bar"];
-  writeln(labelMap);
-  /*labeledGauge.labels(labelMap).inc();*/
+  /*writeln(labelMap);*/
+  labeledGauge.labels(labelMap).inc();
+  /*labeledGauge.foo(labelMap);*/
   sleep(3);
 }

@@ -132,7 +132,6 @@ module Prometheus {
 
     var labelNamesDom = {1..0};
     var labelNames: [labelNamesDom] string;
-    var children: map(bytes, shared Collector?);
     var isParent: bool;
 
     /*var labelMap: emptyLabelMap.type;*/
@@ -182,18 +181,34 @@ module Prometheus {
       if register && this.isParent then registry.register(this);
     }
 
-    proc ref labels(l: ?t) ref where t==emptyLabelMap.type {
-      /*writeln(l);*/
-      const key = getBytesFromLabelMap(l);
-      if children[key] == nil {
-        children[key] = new shared dynType(name=name, labels=l, desc=desc,
-                                           register=false);
-      }
-      return children[key];
-    }
+    /*proc labels(l) ref {*/
+    /*}*/
+
+    /*proc getChild(key) ref {*/
+      /*return children[key];*/
+    /*}*/
+
+    /*proc ref addChild(key, name, labelMap) {*/
+      /*halt("Parent addChild is called");*/
+    /*}*/
+
+    /*proc ref labels(l: []) ref { // TODO check associative array*/
+      /*var labelMap: map(string, string);*/
+      /*for (key, value) in zip(l.domain, l) {*/
+        /*labelMap[key] = value;*/
+      /*}*/
+
+      /*return labels(labelMap);*/
+    /*}*/
 
     proc getBytesFromLabelMap(l) {
-      return b"foo";
+      // inefficient
+      var ret: bytes;
+      for value in l.values(){
+        ret += value:bytes + b"XXX";
+      }
+      return ret;
+      /*return b"foo";*/
       /*return b"\x00".join(l:bytes);*/
     }
 
@@ -240,12 +255,13 @@ module Prometheus {
 
     override proc collect() throws {
       // TODO, fix labels
-      return [new Sample(this.name, this.labels, this.value,
+      return [new Sample(this.name, this.labelMap, this.value,
                          this.desc, this.pType),];
     }
   }
 
   class Gauge: Collector {
+    var children: map(bytes, shared Gauge);
 
     proc init(name: string, desc="", register=true) {
       var labelNames: [1..0] string;
@@ -289,6 +305,39 @@ module Prometheus {
                            this.desc, this.pType),];
       }
     }
+
+    /*override proc ref labels(l) ref {*/
+      /*return super.labels(l);*/
+    /*}*/
+
+    /*override proc ref addChild(key, name, labelMap) {*/
+      /*children[key] = new shared Gauge(name, labelMap, desc="", register=false);*/
+    /*}*/
+
+    /*override proc getChild(key) ref {*/
+      /*return children[key]: shared Gauge;*/
+    /*}*/
+
+    proc ref labels(l: map(string, string)) ref {
+      const key = getBytesFromLabelMap(l);
+      writeln("Children key: ", key);
+      try! { // TODO handle properly
+        if !children.contains(key) {
+          /*addChild(key, name, l);*/
+          children.add(key, new shared Gauge(name=name, labelMap=l, desc=desc,
+                                             register=false));
+        }
+        return children[key];
+      }
+    }
+
+    proc ref labels(l: []) ref {
+      var m: map(string, string);
+      for (key, value) in zip(l.domain, l) {
+        m[key] = value;
+      }
+      return labels(m);
+    }
   }
 
   // per specs, we SHOULD make this a context manager, but class-based context
@@ -301,8 +350,8 @@ module Prometheus {
     var allCount: int;
 
     proc init(name: string, buckets: [], desc="", register=true) {
-      var labels: map(string, string);
-      super.init(name=name, labels=labels, desc=desc, register=register);
+      var labelMap: map(string, string);
+      super.init(name=name, labelMap=labelMap, desc=desc, register=register);
       this.numBuckets = buckets.size;
 
       init this;
@@ -334,7 +383,7 @@ module Prometheus {
     override proc collect() throws {
       var samples: [0..#counts.size+3] Sample; // +3 for +Inf, sum, and count
       const locBucketName = bucketName;
-      var allLabels = labels;
+      var allLabels = labelMap;
       var firstDone = false;
       for (count, bucket, sample) in zip(counts, buckets,
                                          samples[buckets.domain]) {
@@ -355,10 +404,10 @@ module Prometheus {
       samples[counts.size] = new Sample(locBucketName, allLabels, allCount);
 
       // sum
-      samples[counts.size+1] = new Sample(sumName, labels, allSum);
+      samples[counts.size+1] = new Sample(sumName, labelMap, allSum);
 
       // count
-      samples[counts.size+2] = new Sample(countName, labels, allCount);
+      samples[counts.size+2] = new Sample(countName, labelMap, allCount);
 
       return samples;
     }
@@ -375,16 +424,16 @@ module Prometheus {
     proc init(name: string) {
       this.name = name;
 
-      var labels: map(string, string);
-      labels["context"] = name;
+      var labelMap: map(string, string);
+      labelMap["context"] = name;
 
-      this.minGauge = new shared Gauge("chpl_managedtimer_min", labels,
+      this.minGauge = new shared Gauge("chpl_managedtimer_min", labelMap,
                                        desc="Min time for the context");
-      this.maxGauge = new shared Gauge("chpl_managedtimer_max", labels,
+      this.maxGauge = new shared Gauge("chpl_managedtimer_max", labelMap,
                                        desc="Max time for the context");
-      this.totGauge = new shared Gauge("chpl_managedtimer_tot", labels,
+      this.totGauge = new shared Gauge("chpl_managedtimer_tot", labelMap,
                                        desc="Total time for the context");
-      this.entryCounter = new shared Counter("chpl_managedtimer_cnt", labels,
+      this.entryCounter = new shared Counter("chpl_managedtimer_cnt", labelMap,
                                              desc="Number of entries");
 
       init this;
@@ -490,7 +539,7 @@ module Prometheus {
 
   record Sample: writeSerializable {
     var name: string;
-    var labels: map(string, string); // TODO this gets `ref` intent in the default
+    var labelMap: map(string, string); // TODO this gets `ref` intent in the default
                                      // init, maybe it should be const ref?
     var value: real;
     var desc: string = "";
@@ -503,11 +552,11 @@ module Prometheus {
       if pType.size>0 then writer.writef("# TYPE %s %s\n", name, pType);
 
       writer.write(name);
-      if labels.size > 0 {
+      if labelMap.size > 0 {
         writer.write("{");
         var firstDone = false;
         /*for (key, value) in zip(labels.domain, labels) {*/
-        for (key, value) in zip(labels.keys(), labels.values()) {
+        for (key, value) in zip(labelMap.keys(), labelMap.values()) {
           if firstDone {
             writer.write(",");
           }
