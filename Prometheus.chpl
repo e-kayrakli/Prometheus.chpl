@@ -15,6 +15,12 @@ module Prometheus {
   private var server: metricServer;
   private var started = false;
 
+  /*private const emptyLabelMapDom: domain(string);*/
+  /*private const emptyLabelMap: [emptyLabelMapDom] string;*/
+  private const emptyLabelMap: map(string, string);
+  /*type labelMapType = emptyLabelMap.type;*/
+  /*type labelMapType = [domain(string)] string;*/
+
   proc start(host="127.0.0.1", port=8888:uint(16)) {
     started = true;
     server = new metricServer(host, port);
@@ -121,25 +127,72 @@ module Prometheus {
   class Collector {
     var name: string;
     var value: real;
-    var labels: map(string, string);
     var desc: string;
     var pType: string; // prometheus type for the generated metric
 
-    proc init(name: string, const ref labels: map(string, string),
+    var labelNames: [1..0] string;
+    var children: map(bytes, shared Collector?);
+    var isParent: bool;
+
+    /*var labelMap: emptyLabelMap.type;*/
+    var labelMap: map(string, string);
+
+    /*proc init() { }*/
+
+    proc init(name: string, const ref labelMap: emptyLabelMap.type,
               desc: string, register: bool) {
       // TODO wanted to throw
       if !started then halt("Promotheus.start() hasn't been called yet");
 
       this.name = name;
-      this.labels = labels;
 
       if desc=="" then
         this.desc = "No description provided for " + name;
       else
         this.desc = desc;
+
+      this.isParent = false;
+      this.labelMap = labelMap;
+
       init this;
 
-      if register then registry.register(this);
+      if register && this.isParent then registry.register(this);
+    }
+
+
+    proc init(name: string, const ref labelNames: [] string, desc: string,
+              register: bool) {
+      // TODO wanted to throw
+      if !started then halt("Promotheus.start() hasn't been called yet");
+
+      this.name = name;
+
+      if desc=="" then
+        this.desc = "No description provided for " + name;
+      else
+        this.desc = desc;
+
+      this.labelNames = labelNames;
+      this.isParent = labelNames.size>0;
+
+      init this;
+
+      if register && this.isParent then registry.register(this);
+    }
+
+    proc ref labels(l: ?t) ref where t==emptyLabelMap.type {
+      /*writeln(l);*/
+      const key = getBytesFromLabelMap(l);
+      if children[key] == nil {
+        children[key] = new shared dynType(name=name, labels=l, desc=desc,
+                                           register=false);
+      }
+      return children[key];
+    }
+
+    proc getBytesFromLabelMap(l) {
+      return b"foo";
+      /*return b"\x00".join(l:bytes);*/
     }
 
     // TODO : can't make this an iterator. Virtual dispatch with overridden
@@ -152,22 +205,31 @@ module Prometheus {
       return [new Sample(),];
     }
 
+    proc dynType type {
+      return this.type;
+    }
+
+
   }
 
   class Counter: Collector {
 
     proc init(name: string, desc="", register=true) {
-      var labels: map(string, string);
-      super.init(name=name, labels=labels, desc=desc, register=register);
+      var labelNames: [1..0] string;
+      super.init(name=name, labelNames=labelNames, desc=desc, register=register);
     }
 
     // TODO I shouldn't have needed this initializer?
-    proc init(name: string, const ref labels: map(string, string),
-              desc="", register=true) {
-      super.init(name=name, labels=labels, desc=desc, register=register);
+    proc init(name: string, const ref labelNames: [] string, desc="",
+              register=true) {
+      super.init(name=name, labelNames=labelNames, desc=desc, register=register);
     }
 
     proc postinit() { this.pType = "counter"; }
+
+    override proc dynType type {
+      return this.type;
+    }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
@@ -175,6 +237,7 @@ module Prometheus {
     inline proc reset() { value = 0; }
 
     override proc collect() throws {
+      // TODO, fix labels
       return [new Sample(this.name, this.labels, this.value,
                          this.desc, this.pType),];
     }
@@ -183,15 +246,23 @@ module Prometheus {
   class Gauge: Collector {
 
     proc init(name: string, desc="", register=true) {
-      var labels: map(string, string);
-      super.init(name=name, labels=labels, desc=desc, register=register);
+      var labelNames: [1..0] string;
+      super.init(name=name, labelNames=labelNames, desc=desc,
+                 register=register);
     }
 
     // TODO I shouldn't have needed this initializer?
-    proc init(name: string, const ref labels: map(string, string),
+    proc init(name: string, const ref labelNames: [] string,
               desc="", register=true) {
-      super.init(name=name, labels=labels, desc=desc, register=register);
+      super.init(name=name, labelNames=labelNames, desc=desc,
+                 register=register);
 
+    }
+
+    // TODO I shouldn't have needed this initializer?
+    proc init(name: string, const ref labelMap: emptyLabelMap.type,
+              desc: string, register: bool) {
+      super.init(name=name, labelMap=labelMap, desc=desc, register=register);
     }
 
     proc postinit() { this.pType = "gauge"; }
@@ -206,8 +277,15 @@ module Prometheus {
     inline proc reset() { value = 0; }
 
     override proc collect() throws {
-      return [new Sample(this.name, this.labels, this.value,
-                         this.desc, this.pType),];
+      if isParent {
+        var dummyMap: map(string, string);
+        return [new Sample(this.name, dummyMap, this.value,
+                           this.desc, this.pType),];
+      }
+      else {
+        return [new Sample(this.name, this.labelMap, this.value,
+                           this.desc, this.pType),];
+      }
     }
   }
 
@@ -362,6 +440,7 @@ module Prometheus {
     // TODO I want to add `this` from the Collector initializer. That makes me
     // tied to `borrowed`, whereas I feel like I need `shared` here.
     var collectors: list(borrowed Collector);
+    /*var collectors: borrowed Collector?;*/
 
     proc collectMetrics() {
       var ret: bytes;
@@ -372,7 +451,7 @@ module Prometheus {
         // write to memory
         var writer = mem.writer();
         for collector in collectors {
-          for sample in collector.collect() {
+          for sample in collector!.collect() {
             writer.write(sample);
           }
           writer.writeln();
@@ -409,7 +488,8 @@ module Prometheus {
 
   record Sample: writeSerializable {
     var name: string;
-    var labels: map(string, string);
+    var labels: map(string, string); // TODO this gets `ref` intent in the default
+                                     // init, maybe it should be const ref?
     var value: real;
     var desc: string = "";
     var pType: string = "";
@@ -424,6 +504,7 @@ module Prometheus {
       if labels.size > 0 {
         writer.write("{");
         var firstDone = false;
+        /*for (key, value) in zip(labels.domain, labels) {*/
         for (key, value) in zip(labels.keys(), labels.values()) {
           if firstDone {
             writer.write(",");
