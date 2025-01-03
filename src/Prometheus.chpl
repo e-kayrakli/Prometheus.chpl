@@ -225,6 +225,10 @@ module Prometheus {
   }
 
   class Counter: Collector {
+    forwarding var children: labeledChildrenCache(shared Counter);
+
+    // TODO I shouldn't have needed this initializer?
+    proc init(labelMap: map(string, string)) { super.init(labelMap); }
 
     proc init(name: string, desc="", register=true) {
       var labelNames: [1..0] string;
@@ -245,9 +249,20 @@ module Prometheus {
     inline proc reset() { value = 0; }
 
     override proc collect() throws {
-      // TODO, fix labels
-      return [new Sample(this.name, this.labelMap, this.value,
-                         this.desc, this.pType),];
+      if this.rel==relType.parent {
+        // TODO can't directly return this. got an internal compiler error
+        var ret = [child in children] new Sample(this.name,
+                                                 child.labelMap,
+                                                 child.value,
+                                                 this.desc,
+                                                 this.pType);
+
+        return ret;
+      }
+      else {
+        return [new Sample(this.name, this.labelMap, this.value,
+                           this.desc, this.pType),];
+      }
     }
   }
 

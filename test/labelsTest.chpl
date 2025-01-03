@@ -23,4 +23,26 @@ proc gauge(test: borrowed Test) throws {
   Prometheus.stop();
 }
 
+proc counter(test: borrowed Test) throws {
+  Prometheus.start(metaMetrics=false, unitTest=true);
+
+  var labeledCounter = new shared Counter("chpl_test_counter",
+                                          labelNames=["label1", "label2"]);
+
+  labeledCounter.labels(["label1"=>"foo", "label2"=>"bar"]).inc(1);
+  labeledCounter.labels(["label1"=>"bar", "label2"=>"foo"]).inc(2);
+
+  test.assertEqual(Prometheus.getRegistry().collectMetrics().strip(),
+  b"""
+    # HELP chpl_test_counter No description provided for chpl_test_counter
+    # TYPE chpl_test_counter counter
+    chpl_test_counter{label2="bar",label1="foo"} 1.0
+    # HELP chpl_test_counter No description provided for chpl_test_counter
+    # TYPE chpl_test_counter counter
+    chpl_test_counter{label2="foo",label1="bar"} 2.0
+  """.strip().dedent());
+
+  Prometheus.stop();
+}
+
 UnitTest.main();
