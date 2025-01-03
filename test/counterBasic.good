@@ -1,5 +1,0 @@
-# HELP chpl_test_counter No description provided for chpl_test_counter
-# TYPE chpl_test_counter counter
-chpl_test_counter 1.0
-
-
