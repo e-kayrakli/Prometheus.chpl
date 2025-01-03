@@ -237,7 +237,7 @@ module Prometheus {
   }
 
   class Gauge: Collector {
-    forwarding var childrenCache: labeledChildrenCache(shared Gauge);
+    forwarding var children: labeledChildrenCache(shared Gauge);
 
     // TODO I shouldn't have needed this initializer?
     proc init(labelMap: map(string, string)) {
@@ -258,12 +258,6 @@ module Prometheus {
 
     }
 
-    // TODO I shouldn't have needed this initializer?
-    proc init(name: string, const ref labelMap: emptyLabelMap.type,
-              desc: string, register: bool) {
-      super.init(name=name, labelMap=labelMap, desc=desc, register=register);
-    }
-
     proc postinit() { this.pType = "gauge"; }
 
     inline proc inc(v: real) { value += v; }
@@ -278,11 +272,11 @@ module Prometheus {
     override proc collect() throws {
       if isParent {
         // TODO can't directly return this. got an internal compiler error
-        var ret = [child in childrenCache] new Sample(this.name,
-                                                      child.labelMap,
-                                                      child.value,
-                                                      this.desc,
-                                                      this.pType);
+        var ret = [child in children] new Sample(this.name,
+                                                 child.labelMap,
+                                                 child.value,
+                                                 this.desc,
+                                                 this.pType);
 
         return ret;
       }
