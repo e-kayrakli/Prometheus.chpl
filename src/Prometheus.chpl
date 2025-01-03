@@ -159,7 +159,8 @@ module Prometheus {
       /*this.isParent = true;*/
     /*}*/
 
-    proc init(labelMap: map(string, string)) {
+    // TODO I have to add this ref, why?
+    proc init(ref labelMap: map(string, string)) {
       this.name = "NO NAME -- CHILD";
       this.desc = "NO DESC -- CHILD";
       this.pType = "NO PTYPE -- CHILD";
@@ -266,7 +267,7 @@ module Prometheus {
     forwarding var children: labeledChildrenCache(shared Counter);
 
     // TODO I shouldn't have needed this initializer?
-    proc init(labelMap: map(string, string)) { super.init(labelMap); }
+    proc init(ref labelMap: map(string, string)) { super.init(labelMap); }
 
     proc init(name: string, desc="", register=true) {
       var labelNames: [1..0] string;
@@ -304,7 +305,7 @@ module Prometheus {
     forwarding var children: labeledChildrenCache(shared Gauge);
 
     // TODO I shouldn't have needed this initializer?
-    proc init(labelMap: map(string, string)) {
+    proc init(ref labelMap: map(string, string)) {
       super.init(labelMap);
     }
 
@@ -643,7 +644,7 @@ module Prometheus {
     }
   }
 
-  proc ref labeledChildrenCache.labels(l: map(string, string)) ref {
+  proc ref labeledChildrenCache.labels(ref l: map(string, string)) ref {
     const key = getBytesFromLabelMap(l);
     try! { // TODO handle properly
       if !cache.contains(key) {
