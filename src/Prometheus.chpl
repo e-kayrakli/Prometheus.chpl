@@ -188,6 +188,24 @@ module Prometheus {
       /*if register && this.isParent then registry.register(this);*/
     /*}*/
 
+    proc init(name: string, desc: string = "", register: bool = true) {
+      // TODO wanted to throw
+      if !started then halt("Promotheus.start() hasn't been called yet");
+
+      this.name = name;
+      if desc=="" then
+        this.desc = "No description provided for " + name;
+      else
+        this.desc = desc;
+
+      this.rel = if labelNames.size>0 then relType.parent
+                                      else relType.standalone;
+
+      init this;
+
+      if register && this.rel!=relType.child then registry.register(this);
+
+    }
 
     proc init(name: string, const ref labelNames: [] string, desc: string,
               register: bool) {
@@ -339,13 +357,12 @@ module Prometheus {
     var allCount: int;
 
     proc init(name: string, buckets: [], desc="", register=true) {
-      var labelMap: map(string, string);
-      super.init(name=name, labelMap=labelMap, desc=desc, register=register);
+      super.init(name=name, desc=desc, register=register);
       this.numBuckets = buckets.size;
+      this.buckets = buckets;
 
       init this;
 
-      this.buckets = buckets;
     }
 
     proc init(name: string, buckets,  desc="", register=true)
@@ -380,7 +397,7 @@ module Prometheus {
 
         if !firstDone {
           sample = new Sample(locBucketName, allLabels, count, this.desc,
-                              this.pType);
+                              this.pType, helpName=this.name);
           firstDone = true;
         }
         else {
@@ -448,6 +465,14 @@ module Prometheus {
     }
   }
 
+  /*class HistogramTimer: Histogram {*/
+    /*var name: string;*/
+
+    /*proc init(name: string) {*/
+      /*super.init(name);*/
+    /*}*/
+  /*}*/
+
   class UsedMemGauge: Gauge {
     proc init(register=true) {
       var labels: map(string, string);
@@ -473,6 +498,11 @@ module Prometheus {
 
       return super.collect();
     }
+  }
+
+  class CommHeatmap {
+    var heatmap: [0..#numLocales, 0..#numLocales] shared Gauge;
+
   }
 
   record collectorRegistry {
@@ -534,11 +564,15 @@ module Prometheus {
     var desc: string = "";
     var pType: string = "";
 
+    var helpName: string = "";
+
     var timestamp = -1;
 
     proc serialize(writer: fileWriter(?), ref serializer) throws {
-      if desc.size>0 then writer.writef("# HELP %s %s\n", name, desc);
-      if pType.size>0 then writer.writef("# TYPE %s %s\n", name, pType);
+      const _helpName = if helpName.size>0 then helpName else name;
+
+      if desc.size>0 then writer.writef("# HELP %s %s\n", _helpName, desc);
+      if pType.size>0 then writer.writef("# TYPE %s %s\n", _helpName, pType);
 
       writer.write(name);
       if labelMap.size > 0 {
