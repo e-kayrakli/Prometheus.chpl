@@ -7,14 +7,13 @@ module Prometheus {
   use OS.POSIX;
   use MemDiagnostics;
 
-  private config param unitTest = false;
-
   private config const debugPrometheus = true;
   private config const acceptTimeout = 20;
 
   private var registry: collectorRegistry;
   private var server: metricServer;
   private var started = false;
+  private var unitTest = false;
 
   /*private const emptyLabelMapDom: domain(string);*/
   /*private const emptyLabelMap: [emptyLabelMapDom] string;*/
@@ -22,9 +21,10 @@ module Prometheus {
   /*type labelMapType = emptyLabelMap.type;*/
   /*type labelMapType = [domain(string)] string;*/
 
-  proc start(host="127.0.0.1", port=8888:uint(16), metaMetrics=true) {
+  proc start(host="127.0.0.1", port=8888:uint(16), metaMetrics=true,
+             unitTest=false) {
     started = true;
-    server = new metricServer(host, port, metaMetrics);
+    server = new metricServer(host, port, metaMetrics, unitTest);
     server.start();
   }
 
@@ -33,12 +33,8 @@ module Prometheus {
     started = false;
   }
 
-  proc getRegistry() ref where unitTest {
+  proc getRegistry() const ref {
     return registry;
-  }
-
-  proc getRegistry() ref where !unitTest {
-    compilerError("Can't access Prometheus.defaultRegistry unless testing");
   }
 
   record metricServer {
@@ -49,15 +45,19 @@ module Prometheus {
 
     var responseGauge: shared Gauge?;
 
+    var unitTest: bool;
+
     proc init() { }
 
-    proc init(host:string, port:uint(16), metaMetrics: bool) {
+    proc init(host:string, port:uint(16), metaMetrics: bool, unitTest: bool) {
       this.host = host;
       this.port = port;
       if metaMetrics then
         this.responseGauge = new shared Gauge("chpl_prometheus_response_time");
       else
         this.responseGauge = nil;
+
+      this.unitTest = unitTest;
     }
 
     proc ref deinit() { this.stop(); }
@@ -74,7 +74,12 @@ module Prometheus {
     }
 
 
-    proc ref serve() where !unitTest {
+    proc ref serve() {
+      if unitTest {
+        running.write(false);
+        return;
+      }
+
       var t: stopwatch;
 
       var listener: tcpListener;
@@ -130,14 +135,6 @@ module Prometheus {
           running.write(false);
         }
       }
-    }
-
-    proc ref serve() where unitTest {
-      running.write(false);
-    }
-
-    proc generateResponse() {
-
     }
   }
 

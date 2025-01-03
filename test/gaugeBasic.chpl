@@ -15,7 +15,7 @@ proc basic(test: borrowed Test) throws {
                      expectedFormat.format(val).strip().dedent());
   }
 
-  Prometheus.start(metaMetrics=false);
+  Prometheus.start(metaMetrics=false, unitTest=true);
 
 
   var g = new Gauge("chpl_test_gauge");
@@ -28,10 +28,12 @@ proc basic(test: borrowed Test) throws {
   g.set(4); check(4);
   g.reset();
   check(0);
+
+  Prometheus.stop();
 }
 
 proc description(test: borrowed Test) throws {
-  Prometheus.start(metaMetrics=false);
+  Prometheus.start(metaMetrics=false, unitTest=true);
 
   const desc = "this is a test gauge";
   var g = new Gauge("chpl_test_gauge", desc=desc);
@@ -43,6 +45,8 @@ proc description(test: borrowed Test) throws {
     # TYPE chpl_test_gauge gauge
     chpl_test_gauge 1.0
   """.format(desc).strip().dedent());
+
+  Prometheus.stop();
 }
 
 UnitTest.main();
