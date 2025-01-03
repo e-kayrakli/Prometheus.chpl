@@ -7,9 +7,10 @@ module Prometheus {
   use OS.POSIX;
   use MemDiagnostics;
 
+  private config param unitTest = false;
 
-  config const debugPrometheus = true;
-  config const acceptTimeout = 20;
+  private config const debugPrometheus = true;
+  private config const acceptTimeout = 20;
 
   private var registry: collectorRegistry;
   private var server: metricServer;
@@ -21,15 +22,23 @@ module Prometheus {
   /*type labelMapType = emptyLabelMap.type;*/
   /*type labelMapType = [domain(string)] string;*/
 
-  proc start(host="127.0.0.1", port=8888:uint(16)) {
+  proc start(host="127.0.0.1", port=8888:uint(16), metaMetrics=true) {
     started = true;
-    server = new metricServer(host, port);
+    server = new metricServer(host, port, metaMetrics);
     server.start();
   }
 
   proc stop() {
     server.stop();
     started = false;
+  }
+
+  proc getRegistry() ref where unitTest {
+    return registry;
+  }
+
+  proc getRegistry() ref where !unitTest {
+    compilerError("Can't access Prometheus.defaultRegistry unless testing");
   }
 
   record metricServer {
@@ -42,16 +51,18 @@ module Prometheus {
 
     proc init() { }
 
-    proc init(host:string, port:uint(16)) {
+    proc init(host:string, port:uint(16), metaMetrics: bool) {
       this.host = host;
       this.port = port;
-      this.responseGauge = new shared Gauge("chpl_prometheus_response_time");
+      if metaMetrics then
+        this.responseGauge = new shared Gauge("chpl_prometheus_response_time");
+      else
+        this.responseGauge = nil;
     }
 
     proc ref deinit() { this.stop(); }
 
     proc ref start() {
-      assert(this.responseGauge != nil); // TODO
       // TODO wanted to catch this or throw. Neither is supported right now.
       this.running.write(true);
       begin with (ref this) { serve(); }
@@ -62,7 +73,8 @@ module Prometheus {
       running.write(false);
     }
 
-    proc ref serve() {
+
+    proc ref serve() where !unitTest {
       var t: stopwatch;
 
       var listener: tcpListener;
@@ -72,7 +84,7 @@ module Prometheus {
       }
 
       while running.read() {
-        responseGauge!.set(t.elapsed()*1000);
+        if responseGauge != nil then responseGauge!.set(t.elapsed()*1000);
         t.clear();
         try {
           // TODO accept that takes a real argument is not working
@@ -120,10 +132,16 @@ module Prometheus {
       }
     }
 
+    proc ref serve() where unitTest {
+      running.write(false);
+    }
+
     proc generateResponse() {
 
     }
   }
+
+  enum relType { standalone, parent, child };
 
   class Collector {
     var name: string;
@@ -133,38 +151,45 @@ module Prometheus {
 
     var labelNamesDom = {1..0};
     var labelNames: [labelNamesDom] string;
-    var isParent: bool;
+    /*var isParent: bool;*/
+    var rel: relType;
 
     /*var labelMap: emptyLabelMap.type;*/
     var labelMap: map(string, string);
+
+    /*proc init(name: string) {*/
+      /*this.name = name;*/
+      /*this.isParent = true;*/
+    /*}*/
 
     proc init(labelMap: map(string, string)) {
       this.name = "NO NAME -- CHILD";
       this.desc = "NO DESC -- CHILD";
       this.pType = "NO PTYPE -- CHILD";
-      this.isParent = false;
+      /*this.isParent = false;*/
+      this.rel = relType.child;
       this.labelMap = labelMap;
     }
 
-    proc init(name: string, const ref labelMap: emptyLabelMap.type,
-              desc: string, register: bool) {
-      // TODO wanted to throw
-      if !started then halt("Promotheus.start() hasn't been called yet");
+    /*proc init(name: string, const ref labelMap: emptyLabelMap.type,*/
+              /*desc: string, register: bool) {*/
+      /*// TODO wanted to throw*/
+      /*if !started then halt("Promotheus.start() hasn't been called yet");*/
 
-      this.name = name;
+      /*this.name = name;*/
 
-      if desc=="" then
-        this.desc = "No description provided for " + name;
-      else
-        this.desc = desc;
+      /*if desc=="" then*/
+        /*this.desc = "No description provided for " + name;*/
+      /*else*/
+        /*this.desc = desc;*/
 
-      this.isParent = false;
-      this.labelMap = labelMap;
+      /*this.isParent = false;*/
+      /*this.labelMap = labelMap;*/
 
-      init this;
+      /*init this;*/
 
-      if register && this.isParent then registry.register(this);
-    }
+      /*if register && this.isParent then registry.register(this);*/
+    /*}*/
 
 
     proc init(name: string, const ref labelNames: [] string, desc: string,
@@ -181,28 +206,25 @@ module Prometheus {
 
       this.labelNamesDom = labelNames.domain;
       this.labelNames = labelNames;
-      this.isParent = labelNames.size>0;
+      /*this.isParent = labelNames.size>0;*/
+      this.rel = if labelNames.size>0 then relType.parent
+                                      else relType.standalone;
 
       init this;
 
-      if register && this.isParent then registry.register(this);
+      if register && this.rel!=relType.child then registry.register(this);
     }
 
     // TODO : can't make this an iterator. Virtual dispatch with overridden
     // iterators doesn't work
     proc collect() throws {
+      writeln("In Collector.collect()");
       var dummyFlag = true;
       if dummyFlag {
         throw new Error("Abstract method called");
       }
       return [new Sample(),];
     }
-
-    proc dynType type {
-      return this.type;
-    }
-
-
   }
 
   class Counter: Collector {
@@ -219,10 +241,6 @@ module Prometheus {
     }
 
     proc postinit() { this.pType = "counter"; }
-
-    override proc dynType type {
-      return this.type;
-    }
 
     inline proc inc(v: real) { value += v; }
     inline proc inc() { inc(1); }
@@ -270,7 +288,7 @@ module Prometheus {
     inline proc reset() { value = 0; }
 
     override proc collect() throws {
-      if isParent {
+      if this.rel==relType.parent {
         // TODO can't directly return this. got an internal compiler error
         var ret = [child in children] new Sample(this.name,
                                                  child.labelMap,

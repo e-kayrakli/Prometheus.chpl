@@ -1,0 +1,5 @@
+# HELP chpl_test_gauge No description provided for chpl_test_gauge
+# TYPE chpl_test_gauge gauge
+chpl_test_gauge 1.0
+
+
