@@ -138,7 +138,13 @@ module Prometheus {
     /*var labelMap: emptyLabelMap.type;*/
     var labelMap: map(string, string);
 
-    /*proc init() { }*/
+    proc init(labelMap: map(string, string)) {
+      this.name = "NO NAME -- CHILD";
+      this.desc = "NO DESC -- CHILD";
+      this.pType = "NO PTYPE -- CHILD";
+      this.isParent = false;
+      this.labelMap = labelMap;
+    }
 
     proc init(name: string, const ref labelMap: emptyLabelMap.type,
               desc: string, register: bool) {
@@ -180,37 +186,6 @@ module Prometheus {
       init this;
 
       if register && this.isParent then registry.register(this);
-    }
-
-    /*proc labels(l) ref {*/
-    /*}*/
-
-    /*proc getChild(key) ref {*/
-      /*return children[key];*/
-    /*}*/
-
-    /*proc ref addChild(key, name, labelMap) {*/
-      /*halt("Parent addChild is called");*/
-    /*}*/
-
-    /*proc ref labels(l: []) ref { // TODO check associative array*/
-      /*var labelMap: map(string, string);*/
-      /*for (key, value) in zip(l.domain, l) {*/
-        /*labelMap[key] = value;*/
-      /*}*/
-
-      /*return labels(labelMap);*/
-    /*}*/
-
-    proc getBytesFromLabelMap(l) {
-      // inefficient
-      var ret: bytes;
-      for value in l.values(){
-        ret += value:bytes + b"XXX";
-      }
-      return ret;
-      /*return b"foo";*/
-      /*return b"\x00".join(l:bytes);*/
     }
 
     // TODO : can't make this an iterator. Virtual dispatch with overridden
@@ -262,7 +237,12 @@ module Prometheus {
   }
 
   class Gauge: Collector {
-    var children: map(bytes, shared Gauge);
+    forwarding var childrenCache: labeledChildrenCache(shared Gauge);
+
+    // TODO I shouldn't have needed this initializer?
+    proc init(labelMap: map(string, string)) {
+      super.init(labelMap);
+    }
 
     proc init(name: string, desc="", register=true) {
       var labelNames: [1..0] string;
@@ -298,11 +278,11 @@ module Prometheus {
     override proc collect() throws {
       if isParent {
         // TODO can't directly return this. got an internal compiler error
-        var ret = [child in children.values()] new Sample(this.name,
-                                                          child.labelMap,
-                                                          child.value,
-                                                          this.desc,
-                                                          this.pType);
+        var ret = [child in childrenCache] new Sample(this.name,
+                                                      child.labelMap,
+                                                      child.value,
+                                                      this.desc,
+                                                      this.pType);
 
         return ret;
       }
@@ -310,39 +290,6 @@ module Prometheus {
         return [new Sample(this.name, this.labelMap, this.value,
                            this.desc, this.pType),];
       }
-    }
-
-    /*override proc ref labels(l) ref {*/
-      /*return super.labels(l);*/
-    /*}*/
-
-    /*override proc ref addChild(key, name, labelMap) {*/
-      /*children[key] = new shared Gauge(name, labelMap, desc="", register=false);*/
-    /*}*/
-
-    /*override proc getChild(key) ref {*/
-      /*return children[key]: shared Gauge;*/
-    /*}*/
-
-    proc ref labels(l: map(string, string)) ref {
-      const key = getBytesFromLabelMap(l);
-      writeln("Children key: ", key);
-      try! { // TODO handle properly
-        if !children.contains(key) {
-          /*addChild(key, name, l);*/
-          children.add(key, new shared Gauge(name=name, labelMap=l, desc=desc,
-                                             register=false));
-        }
-        return children[key];
-      }
-    }
-
-    proc ref labels(l: []) ref {
-      var m: map(string, string);
-      for (key, value) in zip(l.domain, l) {
-        m[key] = value;
-      }
-      return labels(m);
     }
   }
 
@@ -584,5 +531,46 @@ module Prometheus {
 
       writer.write("\n");
     }
+  }
+
+  record labeledChildrenCache {
+    type t;
+    var cache: map(bytes, t);
+  }
+
+  /*proc labeledChildrenCache.init(type t) {*/
+    /*this.t = t;*/
+  /*}*/
+
+  iter labeledChildrenCache.these() ref {
+    for child in cache.values() do yield child;
+  }
+
+  proc ref labeledChildrenCache.labels(l: map(string, string)) ref {
+    const key = getBytesFromLabelMap(l);
+    try! { // TODO handle properly
+      if !cache.contains(key) {
+        cache.add(key, new t(labelMap=l));
+      }
+      return cache[key];
+    }
+  }
+
+  proc ref labeledChildrenCache.labels(l: []) ref { // TODO check for assoc.
+    var m: map(string, string);
+    for (key, value) in zip(l.domain, l) {
+      m[key] = value;
+    }
+    return labels(m);
+  }
+
+  // helper for labeledChildrenCache
+  private proc getBytesFromLabelMap(l) {
+    // inefficient
+    var ret: bytes;
+    for value in l.values(){
+      ret += value:bytes + b"XXX";
+    }
+    return ret;
   }
 }
