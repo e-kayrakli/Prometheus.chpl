@@ -419,6 +419,28 @@ module Prometheus {
     }
   }
 
+  class HistogramTimer: Histogram, contextManager {
+    type contextReturnType = nothing;
+    var timer: stopwatch;
+
+    proc init(name: string, buckets: [], desc="", register=true) {
+      super.init(name, buckets, desc, register);
+    }
+
+    // TODO shouldn't these have ref this intent? I can't make that work with
+    // context managers
+    proc enterContext(): contextReturnType {
+      timer.clear();
+      timer.start();
+    }
+
+    proc exitContext(in err: owned Error?) {
+      timer.stop();
+      this.observe(timer.elapsed());
+      timer.clear();
+    }
+  }
+
   // TODO can't make this a class+context, so can't make it extend Collector...
   class ManagedTimer: contextManager {
     var name: string;
@@ -464,14 +486,6 @@ module Prometheus {
       entryCounter.inc();
     }
   }
-
-  /*class HistogramTimer: Histogram {*/
-    /*var name: string;*/
-
-    /*proc init(name: string) {*/
-      /*super.init(name);*/
-    /*}*/
-  /*}*/
 
   class UsedMemGauge: Gauge {
     proc init(register=true) {
