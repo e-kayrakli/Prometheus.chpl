@@ -1,7 +1,5 @@
 use Prometheus;
 
-use Time;
-
 Prometheus.start(metaMetrics=false);
 
 var labeledGauge = new shared Gauge("chpl_test_gauge",
