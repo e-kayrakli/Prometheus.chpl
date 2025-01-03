@@ -215,12 +215,32 @@ module Prometheus {
     // TODO : can't make this an iterator. Virtual dispatch with overridden
     // iterators doesn't work
     proc collect() throws {
-      writeln("In Collector.collect()");
-      var dummyFlag = true;
-      if dummyFlag {
-        throw new Error("Abstract method called");
+      if this.rel==relType.parent {
+        // TODO can't directly return this. got an internal compiler error
+        var ret = [sample in childrenSamples()] new Sample(this.name,
+                                                           sample.m,
+                                                           sample.v,
+                                                           this.desc,
+                                                           this.pType);
+
+        return ret;
+      }
+      else {
+        throw new Error("Collector.collect can only be called with parent collectors");
       }
       return [new Sample(),];
+    }
+
+    proc generateBasicSample() {
+      return [new Sample(this.name, this.labelMap, this.value,
+                         this.desc, this.pType),];
+    }
+
+    // TODO these iterators needed to be ref. Why?
+    iter childrenSamples() ref {
+      var dummy: partialSample;
+      yield dummy;
+      // TODO throw?
     }
   }
 
@@ -250,19 +270,15 @@ module Prometheus {
 
     override proc collect() throws {
       if this.rel==relType.parent {
-        // TODO can't directly return this. got an internal compiler error
-        var ret = [child in children] new Sample(this.name,
-                                                 child.labelMap,
-                                                 child.value,
-                                                 this.desc,
-                                                 this.pType);
-
-        return ret;
+        return super.collect();
       }
       else {
-        return [new Sample(this.name, this.labelMap, this.value,
-                           this.desc, this.pType),];
+        return generateBasicSample();
       }
+    }
+
+    override iter childrenSamples() ref {
+      for ps in children.partialSamples() do yield ps;
     }
   }
 
@@ -301,19 +317,15 @@ module Prometheus {
 
     override proc collect() throws {
       if this.rel==relType.parent {
-        // TODO can't directly return this. got an internal compiler error
-        var ret = [child in children] new Sample(this.name,
-                                                 child.labelMap,
-                                                 child.value,
-                                                 this.desc,
-                                                 this.pType);
-
-        return ret;
+        return super.collect();
       }
       else {
-        return [new Sample(this.name, this.labelMap, this.value,
-                           this.desc, this.pType),];
+        return generateBasicSample();
       }
+    }
+
+    override iter childrenSamples() ref {
+      for ps in children.partialSamples() do yield ps;
     }
   }
 
@@ -562,12 +574,25 @@ module Prometheus {
     var cache: map(bytes, t);
   }
 
+  record partialSample {
+    var m: map(string, string);
+    var v: real;
+  }
+
   /*proc labeledChildrenCache.init(type t) {*/
     /*this.t = t;*/
   /*}*/
 
   iter labeledChildrenCache.these() ref {
     for child in cache.values() do yield child;
+  }
+
+  iter labeledChildrenCache.partialSamples() ref {
+    // TODO can I yield the map by ref?
+    for child in cache.values() {
+      var sample = new partialSample(child.labelMap, child.value);
+      yield sample;
+    }
   }
 
   proc ref labeledChildrenCache.labels(l: map(string, string)) ref {
