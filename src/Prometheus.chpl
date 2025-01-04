@@ -122,10 +122,10 @@ module Prometheus {
 
           var data = registry.collectMetrics();
 
-          /*if debugPrometheus {*/
-          /*writeln("Response:");*/
-          /*writeln(data);*/
-          /*}*/
+          if debugPrometheus {
+            writeln("Response:");
+            writeln(data);
+          }
 
           writeln("50000");
           // TODO I couldn't put \r in the end after the refactor. Why?
