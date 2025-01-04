@@ -209,6 +209,7 @@ module Prometheus {
     // TODO : can't make this an iterator. Virtual dispatch with overridden
     // iterators doesn't work
     proc collect() throws {
+      writeln("in Collector.collect rel ", this.rel);
       if this.rel==relType.parent {
         // TODO can't directly return this. got an internal compiler error
         var ret = [sample in childrenSamples()] new Sample(this.name,
@@ -232,6 +233,7 @@ module Prometheus {
 
     // TODO these iterators needed to be ref. Why?
     iter childrenSamples() ref {
+      writeln("in Collector.childrenSample");
       var dummy: partialSample;
       yield dummy;
       // TODO throw?
@@ -306,6 +308,7 @@ module Prometheus {
     inline proc reset() { value = 0; }
 
     override proc collect() throws {
+      writeln("in Gauge.collect rel ", this.rel);
       if this.rel==relType.parent then return super.collect();
       else return generateBasicSample();
     }
@@ -455,12 +458,21 @@ module Prometheus {
   }
 
   class UsedMemGauge: Gauge {
+    // TODO we need this because we can't use a `map` across locales
+    var tmpMems: [LocaleSpace] uint;
+
     proc init(register=true) {
-      super.init(name="chpl_mem_used", labels=["locale",],
+      super.init(name="chpl_mem_used", labelNames=["locale",],
                  desc="Amount of memory used in each locale as reported by "+
                       "the Chapel runtime's memory tracking (--memTrack)",
                  register=register);
     }
+
+    /*proc init(ref labelMap: map(string, string)) {*/
+      /*super.init(labelMap);*/
+    /*}*/
+
+    proc postinit() { this.pType = "gauge"; }
 
     // TODO I wanted to have these `compilerError`, but apparently we compile
     // them and can't use that in lieu of ` = delete` in CPP
@@ -474,9 +486,29 @@ module Prometheus {
     override proc reset()      {writeln("Can't call UsedMemGauge.reset");}
 
     override proc collect() throws {
-      this.value = memoryUsed();
+      coforall loc in Locales do on loc {
+        tmpMems[loc.id] = memoryUsed();
+      }
+
+      for loc in Locales {
+        children.labels(["locale"=>loc.id:string,]).value = tmpMems[loc.id];
+      }
+
+      writeln("in UsedMemGauge.collect rel ", this.rel);
 
       return super.collect();
+    }
+
+    // TODO this is redundant, but without it, the grandparent's collect calls
+    // its own, instead of Gauge's
+    override iter childrenSamples() ref {
+      /*
+        // TODO can't do this with an _almost_internal error
+        for x in super.childrenSamples() do yield x;
+      */
+
+
+      for ps in children.partialSamples() do yield ps;
     }
   }
 
