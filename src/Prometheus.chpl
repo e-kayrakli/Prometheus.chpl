@@ -18,12 +18,6 @@ module Prometheus {
   private var started = false;
   private var unitTest = false;
 
-  /*private const emptyLabelMapDom: domain(string);*/
-  /*private const emptyLabelMap: [emptyLabelMapDom] string;*/
-  private const emptyLabelMap: map(string, string);
-  /*type labelMapType = emptyLabelMap.type;*/
-  /*type labelMapType = [domain(string)] string;*/
-
   proc start(host="127.0.0.1", port=8888:uint(16), metaMetrics=true,
              unitTest=false) {
     writeln("prometheus.start");
@@ -77,13 +71,15 @@ module Prometheus {
 
     proc ref stop() {
       // TODO do we need to make sure that the server moves past accept()?
-      running.write(false);
+      this.running.write(false);
     }
 
 
     proc ref serve() {
-      if unitTest then return;
-
+      if unitTest {
+        this.running.write(true);
+        return;
+      }
 
       var t: stopwatch;
 
@@ -97,19 +93,14 @@ module Prometheus {
         this.running.write(true);
 
         while running.read() {
-          writeln("10000");
           if responseGauge != nil then responseGauge!.set(t.elapsed()*1000);
-          writeln("11000");
           t.clear();
           // TODO accept that takes a real argument is not working
-          writeln("19000");
           var comm = listener.accept(new struct_timeval(acceptTimeout, 0));
-          printf("20000\n");
 
           t.start();
           var socketFile = new file(comm.socketFd);
           var writer = socketFile.writer();
-          writeln("30000");
 
           if debugPrometheus {
             var reader = socketFile.reader();
@@ -117,7 +108,6 @@ module Prometheus {
             writeln(msg);
           }
 
-          writeln("40000");
           // TODO check for the message and confirm it is from prometheus
 
           var data = registry.collectMetrics();
@@ -127,22 +117,18 @@ module Prometheus {
             writeln(data);
           }
 
-          writeln("50000");
           // TODO I couldn't put \r in the end after the refactor. Why?
           param header = "HTTP/1.1 200 OK\n" +
             "Content-Length: %i\n" +
             "Content-Type: text/plain; version=0.0.4\n" +
             "\n";
 
-          writeln("60000");
           writer.writef(header, data.size);
           writer.write("\n");
           writer.write(data);
           writer.write("\n");
 
           writer.close();
-
-          writeln("70000");
 
           defer { t.stop(); }
         }
@@ -168,43 +154,7 @@ module Prometheus {
     /*var isParent: bool;*/
     var rel: relType;
 
-    /*var labelMap: emptyLabelMap.type;*/
     var labelMap: map(string, string);
-
-    /*proc init(name: string) {*/
-      /*this.name = name;*/
-      /*this.isParent = true;*/
-    /*}*/
-
-    // TODO I have to add this ref, why?
-    proc init(ref labelMap: map(string, string)) {
-      this.name = "NO NAME -- CHILD";
-      this.desc = "NO DESC -- CHILD";
-      this.pType = "NO PTYPE -- CHILD";
-      /*this.isParent = false;*/
-      this.rel = relType.child;
-      this.labelMap = labelMap;
-    }
-
-    /*proc init(name: string, const ref labelMap: emptyLabelMap.type,*/
-              /*desc: string, register: bool) {*/
-      /*// TODO wanted to throw*/
-      /*if !started then halt("Promotheus.start() hasn't been called yet");*/
-
-      /*this.name = name;*/
-
-      /*if desc=="" then*/
-        /*this.desc = "No description provided for " + name;*/
-      /*else*/
-        /*this.desc = desc;*/
-
-      /*this.isParent = false;*/
-      /*this.labelMap = labelMap;*/
-
-      /*init this;*/
-
-      /*if register && this.isParent then registry.register(this);*/
-    /*}*/
 
     proc init(name: string, desc: string = "", register: bool = true) {
       // TODO wanted to throw
@@ -222,7 +172,6 @@ module Prometheus {
       init this;
 
       if register && this.rel!=relType.child then registry.register(this);
-
     }
 
     proc init(name: string, const ref labelNames: [] string, desc: string,
@@ -239,7 +188,6 @@ module Prometheus {
 
       this.labelNamesDom = labelNames.domain;
       this.labelNames = labelNames;
-      /*this.isParent = labelNames.size>0;*/
       this.rel = if labelNames.size>0 then relType.parent
                                       else relType.standalone;
 
@@ -247,6 +195,16 @@ module Prometheus {
 
       if register && this.rel!=relType.child then registry.register(this);
     }
+
+    // TODO I have to add this ref, why?
+    proc init(ref labelMap: map(string, string)) {
+      this.name = "NO NAME -- CHILD";
+      this.desc = "NO DESC -- CHILD";
+      this.pType = "NO PTYPE -- CHILD";
+      this.rel = relType.child;
+      this.labelMap = labelMap;
+    }
+
 
     // TODO : can't make this an iterator. Virtual dispatch with overridden
     // iterators doesn't work
@@ -286,15 +244,15 @@ module Prometheus {
     // TODO I shouldn't have needed this initializer?
     proc init(ref labelMap: map(string, string)) { super.init(labelMap); }
 
+    // TODO I shouldn't have needed this initializer?
     proc init(name: string, desc="", register=true) {
-      var labelNames: [1..0] string;
-      super.init(name=name, labelNames=labelNames, desc=desc, register=register);
+      super.init(name=name, desc=desc, register=register);
     }
 
     // TODO I shouldn't have needed this initializer?
     proc init(name: string, const ref labelNames: [] string, desc="",
               register=true) {
-      super.init(name=name, labelNames=labelNames, desc=desc, register=register);
+      super.init(name, labelNames, desc, register);
     }
 
     proc postinit() { this.pType = "counter"; }
@@ -327,17 +285,13 @@ module Prometheus {
     }
 
     proc init(name: string, desc="", register=true) {
-      var labelNames: [1..0] string;
-      super.init(name=name, labelNames=labelNames, desc=desc,
-                 register=register);
+      super.init(name=name, desc=desc, register=register);
     }
 
     // TODO I shouldn't have needed this initializer?
-    proc init(name: string, const ref labelNames: [] string,
-              desc="", register=true) {
-      super.init(name=name, labelNames=labelNames, desc=desc,
-                 register=register);
-
+    proc init(name: string, const ref labelNames: [] string, desc="",
+              register=true) {
+      super.init(name, labelNames, desc, register);
     }
 
     proc postinit() { this.pType = "gauge"; }
@@ -352,12 +306,8 @@ module Prometheus {
     inline proc reset() { value = 0; }
 
     override proc collect() throws {
-      if this.rel==relType.parent {
-        return super.collect();
-      }
-      else {
-        return generateBasicSample();
-      }
+      if this.rel==relType.parent then return super.collect();
+      else return generateBasicSample();
     }
 
     override iter childrenSamples() ref {
@@ -380,7 +330,6 @@ module Prometheus {
       this.buckets = buckets;
 
       init this;
-
     }
 
     proc init(name: string, buckets,  desc="", register=true)
@@ -507,9 +456,8 @@ module Prometheus {
 
   class UsedMemGauge: Gauge {
     proc init(register=true) {
-      var labels: map(string, string);
-      super.init(name="chpl_mem_used", labels=labels,
-                 desc="Amount of memory used in Locales[0] as reported by "+
+      super.init(name="chpl_mem_used", labels=["locale",],
+                 desc="Amount of memory used in each locale as reported by "+
                       "the Chapel runtime's memory tracking (--memTrack)",
                  register=register);
     }
@@ -532,17 +480,12 @@ module Prometheus {
     }
   }
 
-  class CommHeatmap {
-    var heatmap: [0..#numLocales, 0..#numLocales] shared Gauge;
-
-  }
 
   record collectorRegistry {
 
     // TODO I want to add `this` from the Collector initializer. That makes me
     // tied to `borrowed`, whereas I feel like I need `shared` here.
     var collectors: list(borrowed Collector);
-    /*var collectors: borrowed Collector?;*/
 
     proc collectMetrics() {
       var ret: bytes;
@@ -635,19 +578,15 @@ module Prometheus {
     }
   }
 
-  record labeledChildrenCache {
-    type t;
-    var cache: map(bytes, t);
-  }
-
   record partialSample {
     var m: map(string, string);
     var v: real;
   }
 
-  /*proc labeledChildrenCache.init(type t) {*/
-    /*this.t = t;*/
-  /*}*/
+  record labeledChildrenCache {
+    type t;
+    var cache: map(bytes, t);
+  }
 
   iter labeledChildrenCache.these() ref {
     for child in cache.values() do yield child;
