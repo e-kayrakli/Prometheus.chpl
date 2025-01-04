@@ -20,7 +20,6 @@ module Prometheus {
 
   proc start(host="127.0.0.1", port=8888:uint(16), metaMetrics=true,
              unitTest=false) {
-    writeln("prometheus.start");
     started = true;
     server = new metricServer(host, port, metaMetrics, unitTest);
     server.start();
@@ -458,19 +457,23 @@ module Prometheus {
   }
 
   class UsedMemGauge: Gauge {
-    // TODO we need this because we can't use a `map` across locales
-    var tmpMems: [LocaleSpace] uint;
+    // to avoid reallocating/repopulatin at every collection
+    var tmpMem: [LocaleSpace] uint;
+    var samples: [LocaleSpace] Sample;
+    var labelMaps: [LocaleSpace] map(string, string);
 
     proc init(register=true) {
       super.init(name="chpl_mem_used", labelNames=["locale",],
                  desc="Amount of memory used in each locale as reported by "+
                       "the Chapel runtime's memory tracking (--memTrack)",
                  register=register);
-    }
 
-    /*proc init(ref labelMap: map(string, string)) {*/
-      /*super.init(labelMap);*/
-    /*}*/
+      init this;
+
+      for loc in Locales {
+        labelMaps[loc.id]["locale"] = loc.id:string;
+      }
+    }
 
     proc postinit() { this.pType = "gauge"; }
 
@@ -486,29 +489,23 @@ module Prometheus {
     override proc reset()      {writeln("Can't call UsedMemGauge.reset");}
 
     override proc collect() throws {
+      // collect numbers
       coforall loc in Locales do on loc {
-        tmpMems[loc.id] = memoryUsed();
+        tmpMem[loc.id] = memoryUsed();
       }
 
-      for loc in Locales {
-        children.labels(["locale"=>loc.id:string,]).value = tmpMems[loc.id];
+      // create samples
+      coforall (loc, labelMap, mem) in zip(Locales, labelMaps, tmpMem) {
+        if loc.id == 0 {
+          samples[loc.id] = new Sample(this.name, labelMap, mem,
+                                       this.desc, this.pType);
+        }
+        else {
+          samples[loc.id] = new Sample(this.name, labelMap, mem);
+        }
       }
 
-      writeln("in UsedMemGauge.collect rel ", this.rel);
-
-      return super.collect();
-    }
-
-    // TODO this is redundant, but without it, the grandparent's collect calls
-    // its own, instead of Gauge's
-    override iter childrenSamples() ref {
-      /*
-        // TODO can't do this with an _almost_internal error
-        for x in super.childrenSamples() do yield x;
-      */
-
-
-      for ps in children.partialSamples() do yield ps;
+      return samples;
     }
   }
 
