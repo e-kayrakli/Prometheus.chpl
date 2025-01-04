@@ -7,6 +7,9 @@ module Prometheus {
   use OS.POSIX;
   use MemDiagnostics;
 
+  // TODO put this in a class/record definition and compilation fails
+  extern proc printf(s...);
+
   private config const debugPrometheus = true;
   private config const acceptTimeout = 20;
 
@@ -23,6 +26,7 @@ module Prometheus {
 
   proc start(host="127.0.0.1", port=8888:uint(16), metaMetrics=true,
              unitTest=false) {
+    writeln("prometheus.start");
     started = true;
     server = new metricServer(host, port, metaMetrics, unitTest);
     server.start();
@@ -63,9 +67,12 @@ module Prometheus {
     proc ref deinit() { this.stop(); }
 
     proc ref start() {
+      import currentTask;
       // TODO wanted to catch this or throw. Neither is supported right now.
-      this.running.write(true);
       begin with (ref this) { serve(); }
+      while this.running.read() == false {
+        currentTask.yieldExecution();
+      }
     }
 
     proc ref stop() {
@@ -75,29 +82,34 @@ module Prometheus {
 
 
     proc ref serve() {
-      if unitTest {
-        running.write(false);
-        return;
-      }
+      if unitTest then return;
+
 
       var t: stopwatch;
 
-      var listener: tcpListener;
-      try! {
-        listener = listen(ipAddr.create(host="127.0.0.1", port=port));
-        writeln("created the listener");
-      }
+      try {
+        if this.running.read() == true {
+          throw new Error("The metricServer is already serving");
+        }
+        writeln("creating the listener", port);
+        var listener = try! listen(ipAddr.create(host="127.0.0.1", port=port));
 
-      while running.read() {
-        if responseGauge != nil then responseGauge!.set(t.elapsed()*1000);
-        t.clear();
-        try {
+        this.running.write(true);
+
+        while running.read() {
+          writeln("10000");
+          if responseGauge != nil then responseGauge!.set(t.elapsed()*1000);
+          writeln("11000");
+          t.clear();
           // TODO accept that takes a real argument is not working
+          writeln("19000");
           var comm = listener.accept(new struct_timeval(acceptTimeout, 0));
+          printf("20000\n");
 
           t.start();
           var socketFile = new file(comm.socketFd);
           var writer = socketFile.writer();
+          writeln("30000");
 
           if debugPrometheus {
             var reader = socketFile.reader();
@@ -105,21 +117,24 @@ module Prometheus {
             writeln(msg);
           }
 
+          writeln("40000");
           // TODO check for the message and confirm it is from prometheus
 
           var data = registry.collectMetrics();
 
           /*if debugPrometheus {*/
-            /*writeln("Response:");*/
-            /*writeln(data);*/
+          /*writeln("Response:");*/
+          /*writeln(data);*/
           /*}*/
 
+          writeln("50000");
           // TODO I couldn't put \r in the end after the refactor. Why?
           param header = "HTTP/1.1 200 OK\n" +
-                        "Content-Length: %i\n" +
-                        "Content-Type: text/plain; version=0.0.4\n" +
-                        "\n";
+            "Content-Length: %i\n" +
+            "Content-Type: text/plain; version=0.0.4\n" +
+            "\n";
 
+          writeln("60000");
           writer.writef(header, data.size);
           writer.write("\n");
           writer.write(data);
@@ -127,13 +142,15 @@ module Prometheus {
 
           writer.close();
 
+          writeln("70000");
+
           defer { t.stop(); }
         }
-        catch e {
-          writeln("Error caught serving prometheus. Stopping server.");
-          writeln(e.message());
-          running.write(false);
-        }
+      }
+      catch e {
+        writeln("Error caught serving prometheus. Stopping server.");
+        writeln(e.message());
+        running.write(false);
       }
     }
   }
