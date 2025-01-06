@@ -33,11 +33,8 @@ proc main() {
 
   const dataInBytes:real = numElems*numBytes(real)*3;
 
-  var tempT: stopwatch;
-
   while true {
     manage histTimer {
-      tempT.start();
       var A, B, C: [1..numElems] real;
       B = rs.next(0, 1);
       C = rs.next(0, 1);
@@ -55,9 +52,6 @@ proc main() {
 
       histogramTest.observe(A[1]);
       assert((+ reduce A) > 0);
-      tempT.stop();
-      writeln("tempT: ", tempT.elapsed());
-      tempT.clear();
     }
   }
 }
