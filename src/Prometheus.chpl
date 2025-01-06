@@ -6,9 +6,6 @@ module Prometheus {
   public use Collectors;
   private use Core;
 
-  // TODO put this in a class/record definition and compilation fails
-  extern proc printf(s...);
-
   proc start(host="127.0.0.1", port=8888:uint(16), metaMetrics=true,
              unitTest=false) {
     started = true;
@@ -49,8 +46,6 @@ module Prometheus {
       var labelMap: map(string, string);
 
       proc init(name: string, desc: string = "", register: bool = true) {
-        // TODO wanted to throw
-        // TODO super in a class can't find the super module
         if !started then
           halt("Promotheus.start() hasn't been called yet");
 
@@ -71,7 +66,6 @@ module Prometheus {
 
       proc init(name: string, const ref labelNames: [] string, desc: string,
                 register: bool) {
-        // TODO wanted to throw
         if !started then
           halt("Promotheus.start() hasn't been called yet");
 
