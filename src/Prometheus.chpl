@@ -33,6 +33,8 @@ module Prometheus {
                                 Sample, labeledChildrenCache;
     private use Time only stopwatch;
 
+    private use MemDiagnostics only memoryUsed;
+
     class Collector {
       var name: string;
       var value: real;
@@ -356,21 +358,21 @@ module Prometheus {
 
     class UsedMemGauge: Gauge {
       // to avoid reallocating/repopulatin at every collection
-      var tmpMem: [LocaleSpace] uint;
-      var samples: [LocaleSpace] Sample;
-      var labelMaps: [LocaleSpace] map(string, string);
+      /*var tmpMem: [LocaleSpace] uint;*/
+      /*var samples: [LocaleSpace] Sample;*/
+      /*var labelMaps: [LocaleSpace] map(string, string);*/
 
       proc init(register=true) {
-        super.init(name="chpl_mem_used", labelNames=["locale",],
+        super.init(name="chpl_mem_used",
                    desc="Amount of memory used in each locale as reported by "+
                         "the Chapel runtime's memory tracking (--memTrack)",
                    register=register);
 
         init this;
 
-        for loc in Locales {
-          labelMaps[loc.id]["locale"] = loc.id:string;
-        }
+        /*for loc in Locales {*/
+          /*labelMaps[loc.id]["locale"] = loc.id:string;*/
+        /*}*/
       }
 
       proc postinit() { this.pType = "gauge"; }
@@ -387,6 +389,9 @@ module Prometheus {
       override proc reset()      {writeln("Can't call UsedMemGauge.reset");}
 
       override proc collect() throws {
+        // TODO this multilocale implementation segfaults even when compiled
+        // locally
+        /*
         // collect numbers
         coforall loc in Locales do on loc {
           tmpMem[loc.id] = memoryUsed();
@@ -404,6 +409,10 @@ module Prometheus {
         }
 
         return samples;
+         */
+
+        return [new Sample(this.name, labelMap, memoryUsed(), this.desc,
+                           this.pType),];
       }
     }
   }

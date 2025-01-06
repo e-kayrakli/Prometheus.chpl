@@ -20,7 +20,7 @@ proc main() {
                                                                 1.00,
                                                                 ]);
   // TODO this shows a potential leak?
-  /*var usedMemGauge = new shared Prometheus.UsedMemGauge();*/
+  var usedMemGauge = new shared Prometheus.UsedMemGauge();
 
   var histogramTest = new shared Prometheus.Histogram(name="chpl_stream_result",
                                                       buckets=[i in 1..10] i/10.0);
