@@ -96,8 +96,8 @@ module Prometheus {
       }
 
 
-      // TODO : can't make this an iterator. Virtual dispatch with overridden
-      // iterators doesn't work
+      // I wanted an iterator, but there are some issues:
+      // https://github.com/chapel-lang/chapel/issues/26478
       proc collect() throws {
         writeln("in Collector.collect rel ", this.rel);
         if this.rel==relType.parent {
@@ -133,15 +133,12 @@ module Prometheus {
     class Counter: Collector {
       forwarding var children: labeledChildrenCache(shared Counter);
 
-      // TODO I shouldn't have needed this initializer?
       proc init(ref labelMap: map(string, string)) { super.init(labelMap); }
 
-      // TODO I shouldn't have needed this initializer?
       proc init(name: string, desc="", register=true) {
         super.init(name=name, desc=desc, register=register);
       }
 
-      // TODO I shouldn't have needed this initializer?
       proc init(name: string, const ref labelNames: [] string, desc="",
                 register=true) {
         super.init(name, labelNames, desc, register);
@@ -171,7 +168,6 @@ module Prometheus {
     class Gauge: Collector {
       forwarding var children: labeledChildrenCache(shared Gauge);
 
-      // TODO I shouldn't have needed this initializer?
       proc init(ref labelMap: map(string, string)) {
         super.init(labelMap);
       }
@@ -180,7 +176,6 @@ module Prometheus {
         super.init(name=name, desc=desc, register=register);
       }
 
-      // TODO I shouldn't have needed this initializer?
       proc init(name: string, const ref labelNames: [] string, desc="",
                 register=true) {
         super.init(name, labelNames, desc, register);
