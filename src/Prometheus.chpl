@@ -87,7 +87,6 @@ module Prometheus {
           registry.register(this);
       }
 
-      // TODO I have to add this ref, why?
       proc init(ref labelMap: map(string, string)) {
         this.name = "NO NAME -- CHILD";
         this.desc = "NO DESC -- CHILD";
