@@ -101,14 +101,11 @@ module Prometheus {
       proc collect() throws {
         writeln("in Collector.collect rel ", this.rel);
         if this.rel==relType.parent {
-          // TODO can't directly return this. got an internal compiler error
-          var ret = [sample in childrenSamples()] new Sample(this.name,
-                                                             sample.m,
-                                                             sample.v,
-                                                             this.desc,
-                                                             this.pType);
-
-          return ret;
+          return [sample in childrenSamples()] new Sample(this.name,
+                                                          sample.m,
+                                                          sample.v,
+                                                          this.desc,
+                                                          this.pType);
         }
         else {
           throw new Error("Collector.collect can only be called with parent collectors");
