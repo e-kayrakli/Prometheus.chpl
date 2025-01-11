@@ -1,4 +1,4 @@
 target/
 Mason.lock
 etc/sphinx/build
-etc/sphinx/source/src/*
+etc/sphinx/source/modules/src/*
