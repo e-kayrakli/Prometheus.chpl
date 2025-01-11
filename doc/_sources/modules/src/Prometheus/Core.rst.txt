@@ -1,0 +1,105 @@
+.. default-domain:: chpl
+
+.. module:: Core
+
+Core
+====
+**Usage**
+
+.. code-block:: chapel
+
+   use Prometheus.Core;
+
+
+or
+
+.. code-block:: chapel
+
+   import Prometheus.Core;
+
+.. data:: var server: metricServer
+
+.. data:: var started = false
+
+.. data:: var unitTest = false
+
+.. enum:: enum relType { standalone, parent, child }
+
+   .. enumconstant:: enum constant standalone
+
+   .. enumconstant:: enum constant parent
+
+   .. enumconstant:: enum constant child
+
+.. record:: metricServer
+
+   .. attribute:: var host: string
+
+   .. attribute:: var port: uint(16)
+
+   .. attribute:: var running: atomic bool = false
+
+   .. attribute:: var responseGauge: shared Gauge?
+
+   .. attribute:: var unitTest: bool
+
+   .. method:: proc init()
+
+   .. method:: proc init(host: string, port: uint(16), metaMetrics: bool, unitTest: bool)
+
+   .. method:: proc ref deinit()
+
+   .. method:: proc ref start()
+
+   .. method:: proc ref stop()
+
+   .. method:: proc ref serve()
+
+.. record:: collectorRegistry
+
+   .. attribute:: var collectors: list(borrowed Collector)
+
+   .. method:: proc collectMetrics()
+
+   .. method:: proc ref register(c)
+
+   .. method:: proc unregister(c)
+
+.. record:: Sample : writeSerializable
+
+   .. attribute:: var name: string
+
+   .. attribute:: var labelMap: map(string, string)
+
+   .. attribute:: var value: real
+
+   .. attribute:: var desc: string = ""
+
+   .. attribute:: var pType: string = ""
+
+   .. attribute:: var helpName: string = ""
+
+   .. attribute:: var timestamp = -1
+
+   .. method:: proc serialize(writer: fileWriter(?), ref serializer) throws
+
+.. record:: partialSample
+
+   .. attribute:: var m: map(string, string)
+
+   .. attribute:: var v: real
+
+.. record:: labeledChildrenCache
+
+   .. attribute:: type t
+
+   .. attribute:: var cache: map(bytes, t)
+
+.. itermethod:: iter labeledChildrenCache.these() ref
+
+.. itermethod:: iter labeledChildrenCache.partialSamples() ref
+
+.. method:: proc ref labeledChildrenCache.labels(ref l: map(string, string)) ref
+
+.. method:: proc ref labeledChildrenCache.labels(l: []) ref
+

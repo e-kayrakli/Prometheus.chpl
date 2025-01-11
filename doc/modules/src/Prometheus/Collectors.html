@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collectors &mdash; Prometheus 0.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Core" href="Core.html" />
+    <link rel="prev" title="Prometheus" href="../Prometheus.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Prometheus
+          </a>
+              <div class="version">
+                0.4.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Prometheus Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../Prometheus.html">Standard Prometheus API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Collectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Core.html">Core</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Standard Collectors API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../grafana.html">Using Grafana</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Prometheus</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../Prometheus.html">Prometheus</a></li>
+      <li class="breadcrumb-item active">Collectors</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/modules/src/Prometheus/Collectors.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="collectors">
+<span id="module-Collectors"></span><h1>Collectors<a class="headerlink" href="#collectors" title="Link to this heading">¶</a></h1>
+<p><strong>Usage</strong></p>
+<div class="highlight-chapel notranslate"><div class="highlight"><pre><span></span><span class="k">use</span> <span class="nx">Prometheus</span><span class="p">.</span><span class="nx">Collectors</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-chapel notranslate"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nx">Prometheus</span><span class="p">.</span><span class="nx">Collectors</span><span class="p">;</span>
+</pre></div>
+</div>
+<dl class="chpl class">
+<dt class="sig sig-object chpl" id="Collectors.Collector">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">Collector</span></span><a class="headerlink" href="#Collectors.Collector" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.name">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span></em><a class="headerlink" href="#Collectors.Collector.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.value">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">value</span></span><em class="property"> <span class="pre">:</span> <span class="pre">real</span></em><a class="headerlink" href="#Collectors.Collector.value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.desc">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">desc</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span></em><a class="headerlink" href="#Collectors.Collector.desc" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.pType">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">pType</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span></em><a class="headerlink" href="#Collectors.Collector.pType" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.labelNamesDom">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">labelNamesDom</span></span><span class="w"> </span><em class="property"> <span class="pre">=</span> <span class="pre">{1..0}</span></em><a class="headerlink" href="#Collectors.Collector.labelNamesDom" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.labelNames">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">labelNames</span></span><em class="property"> <span class="pre">:</span> <span class="pre">[labelNamesDom]</span> <span class="pre">string</span></em><a class="headerlink" href="#Collectors.Collector.labelNames" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.rel">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">rel</span></span><em class="property"> <span class="pre">:</span> <span class="pre">relType</span></em><a class="headerlink" href="#Collectors.Collector.rel" title="Link to this definition">¶</a></dt>
+<dd><p>var isParent: bool;</p>
+</dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Collector.labelMap">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">labelMap</span></span><em class="property"> <span class="pre">:</span> <span class="pre">map(string,</span> <span class="pre">string)</span></em><a class="headerlink" href="#Collectors.Collector.labelMap" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Collector.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">desc:</span> <span class="pre">string</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Collector.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">const</span> <span class="pre">ref</span> <span class="pre">labelNames:</span> <span class="pre">[]</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">desc:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">register:</span> <span class="pre">bool</span></em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ref</span> <span class="pre">labelMap:</span> <span class="pre">map(string</span></em>, <em class="sig-param"><span class="pre">string)</span></em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Collector.collect">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">throws</span></em><a class="headerlink" href="#Collectors.Collector.collect" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Collector.generateBasicSample">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">generateBasicSample</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Collector.generateBasicSample" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl itermethod">
+<dt class="sig sig-object chpl" id="Collectors.Collector.childrenSamples">
+<em class="property"><span class="pre">iter</span> </em><span class="sig-name descname"><span class="pre">childrenSamples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">ref</span></em><a class="headerlink" href="#Collectors.Collector.childrenSamples" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl class">
+<dt class="sig sig-object chpl" id="Collectors.Counter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">Counter</span></span><em class="property"> <span class="pre">:</span> <span class="pre">Collector</span></em><a class="headerlink" href="#Collectors.Counter" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Counter.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ref</span> <span class="pre">labelMap:</span> <span class="pre">map(string</span></em>, <em class="sig-param"><span class="pre">string)</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Counter.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">desc</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">const</span> <span class="pre">ref</span> <span class="pre">labelNames:</span> <span class="pre">[]</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">desc</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Counter.postinit">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">postinit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Counter.postinit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Counter.inc">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">inc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Counter.inc" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">inc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Counter.reset">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Counter.reset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Counter.collect">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">throws</span></em><a class="headerlink" href="#Collectors.Counter.collect" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl itermethod">
+<dt class="sig sig-object chpl" id="Collectors.Counter.childrenSamples">
+<em class="property"><span class="pre">override</span> <span class="pre">iter</span> </em><span class="sig-name descname"><span class="pre">childrenSamples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">ref</span></em><a class="headerlink" href="#Collectors.Counter.childrenSamples" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl class">
+<dt class="sig sig-object chpl" id="Collectors.Gauge">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">Gauge</span></span><em class="property"> <span class="pre">:</span> <span class="pre">Collector</span></em><a class="headerlink" href="#Collectors.Gauge" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ref</span> <span class="pre">labelMap:</span> <span class="pre">map(string</span></em>, <em class="sig-param"><span class="pre">string)</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Gauge.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">desc</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">const</span> <span class="pre">ref</span> <span class="pre">labelNames:</span> <span class="pre">[]</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">desc</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.postinit">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">postinit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Gauge.postinit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.inc">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">inc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Gauge.inc" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">inc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.dec">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">dec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Gauge.dec" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">dec</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.set">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Gauge.set" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.reset">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Gauge.reset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.collect">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">throws</span></em><a class="headerlink" href="#Collectors.Gauge.collect" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl itermethod">
+<dt class="sig sig-object chpl" id="Collectors.Gauge.childrenSamples">
+<em class="property"><span class="pre">override</span> <span class="pre">iter</span> </em><span class="sig-name descname"><span class="pre">childrenSamples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">ref</span></em><a class="headerlink" href="#Collectors.Gauge.childrenSamples" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl class">
+<dt class="sig sig-object chpl" id="Collectors.Histogram">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">Histogram</span></span><em class="property"> <span class="pre">:</span> <span class="pre">Collector</span></em><a class="headerlink" href="#Collectors.Histogram" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.numBuckets">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">numBuckets</span></span><span class="w"> </span><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#Collectors.Histogram.numBuckets" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.buckets">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">buckets</span></span><em class="property"> <span class="pre">:</span> <span class="pre">[0..#numBuckets]</span> <span class="pre">real</span></em><a class="headerlink" href="#Collectors.Histogram.buckets" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.counts">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">counts</span></span><em class="property"> <span class="pre">:</span> <span class="pre">[buckets.domain]</span> <span class="pre">int</span></em><a class="headerlink" href="#Collectors.Histogram.counts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.allSum">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">allSum</span></span><em class="property"> <span class="pre">:</span> <span class="pre">real</span></em><a class="headerlink" href="#Collectors.Histogram.allSum" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.allCount">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">allCount</span></span><em class="property"> <span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#Collectors.Histogram.allCount" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">buckets:</span> <span class="pre">[]</span></em>, <em class="sig-param"><span class="pre">desc</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Histogram.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">buckets</span></em>, <em class="sig-param"><span class="pre">desc</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span><em class="property">&#160; <span class="pre">where</span> <span class="pre">!isArray(buckets)</span></em></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.postinit">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">postinit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Histogram.postinit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.bucketName">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">bucketName</span></span><a class="headerlink" href="#Collectors.Histogram.bucketName" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.sumName">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">sumName</span></span><a class="headerlink" href="#Collectors.Histogram.sumName" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.countName">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">countName</span></span><a class="headerlink" href="#Collectors.Histogram.countName" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.observe">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">observe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.Histogram.observe" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.Histogram.collect">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">throws</span></em><a class="headerlink" href="#Collectors.Histogram.collect" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl class">
+<dt class="sig sig-object chpl" id="Collectors.HistogramTimer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">HistogramTimer</span></span><em class="property"> <span class="pre">:</span> <span class="pre">Histogram,</span> <span class="pre">contextManager</span></em><a class="headerlink" href="#Collectors.HistogramTimer" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.HistogramTimer.contextReturnType">
+<em class="property"><span class="pre">type</span> </em><span class="sig-name descname"><span class="pre">contextReturnType</span></span><span class="w"> </span><em class="property"> <span class="pre">=</span> <span class="pre">nothing</span></em><a class="headerlink" href="#Collectors.HistogramTimer.contextReturnType" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.HistogramTimer.timer">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">timer</span></span><em class="property"> <span class="pre">:</span> <span class="pre">stopwatch</span></em><a class="headerlink" href="#Collectors.HistogramTimer.timer" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.HistogramTimer.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">buckets:</span> <span class="pre">[]</span></em>, <em class="sig-param"><span class="pre">desc</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em>, <em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.HistogramTimer.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.HistogramTimer.enterContext">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">enterContext</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><em class="property"> <span class="pre">:</span> <span class="pre">contextReturnType</span></em><a class="headerlink" href="#Collectors.HistogramTimer.enterContext" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.HistogramTimer.exitContext">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">exitContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">in</span> <span class="pre">err:</span> <span class="pre">owned</span> <span class="pre">Error?</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.HistogramTimer.exitContext" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl class">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">ManagedTimer</span></span><em class="property"> <span class="pre">:</span> <span class="pre">contextManager</span></em><a class="headerlink" href="#Collectors.ManagedTimer" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.name">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span></em><a class="headerlink" href="#Collectors.ManagedTimer.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.timer">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">timer</span></span><em class="property"> <span class="pre">:</span> <span class="pre">stopwatch</span></em><a class="headerlink" href="#Collectors.ManagedTimer.timer" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.minGauge">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">minGauge</span></span><em class="property"> <span class="pre">:</span> <span class="pre">shared</span> <span class="pre">Gauge</span></em><a class="headerlink" href="#Collectors.ManagedTimer.minGauge" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.maxGauge">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">maxGauge</span></span><em class="property"> <span class="pre">:</span> <span class="pre">minGauge.type</span></em><a class="headerlink" href="#Collectors.ManagedTimer.maxGauge" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.totGauge">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">totGauge</span></span><em class="property"> <span class="pre">:</span> <span class="pre">maxGauge.type</span></em><a class="headerlink" href="#Collectors.ManagedTimer.totGauge" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.entryCounter">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">entryCounter</span></span><em class="property"> <span class="pre">:</span> <span class="pre">shared</span> <span class="pre">Counter</span></em><a class="headerlink" href="#Collectors.ManagedTimer.entryCounter" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">name:</span> <span class="pre">string</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.ManagedTimer.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.enterContext">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-name descname"><span class="pre">enterContext</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.ManagedTimer.enterContext" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.ManagedTimer.exitContext">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-name descname"><span class="pre">exitContext</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.ManagedTimer.exitContext" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl class">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge">
+<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">UsedMemGauge</span></span><em class="property"> <span class="pre">:</span> <span class="pre">Gauge</span></em><a class="headerlink" href="#Collectors.UsedMemGauge" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">register</span> <span class="pre">=</span> <span class="pre">true</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.UsedMemGauge.init" title="Link to this definition">¶</a></dt>
+<dd><p>var labelMaps: [LocaleSpace] map(string, string);</p>
+</dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge.postinit">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">postinit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.UsedMemGauge.postinit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge.inc">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">inc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.UsedMemGauge.inc" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">inc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge.dec">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">dec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.UsedMemGauge.dec" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">dec</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge.set">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">v:</span> <span class="pre">real</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.UsedMemGauge.set" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge.reset">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Collectors.UsedMemGauge.reset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Collectors.UsedMemGauge.collect">
+<em class="property"><span class="pre">override</span> <span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">collect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">throws</span></em><a class="headerlink" href="#Collectors.UsedMemGauge.collect" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../Prometheus.html" class="btn btn-neutral float-left" title="Prometheus" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Core.html" class="btn btn-neutral float-right" title="Core" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Engin Kayraklioglu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+ 
+
+
+
+</body>
+</html>

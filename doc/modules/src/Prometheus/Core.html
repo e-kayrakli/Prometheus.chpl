@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core &mdash; Prometheus 0.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/documentation_options.js?v=6c02275b"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Using Grafana" href="../../../grafana.html" />
+    <link rel="prev" title="Collectors" href="Collectors.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Prometheus
+          </a>
+              <div class="version">
+                0.4.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Prometheus Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../Prometheus.html">Standard Prometheus API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Collectors.html">Collectors</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Core</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Collectors.html">Standard Collectors API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../grafana.html">Using Grafana</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Prometheus</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../Prometheus.html">Prometheus</a></li>
+      <li class="breadcrumb-item active">Core</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/modules/src/Prometheus/Core.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="core">
+<span id="module-Core"></span><h1>Core<a class="headerlink" href="#core" title="Link to this heading">¶</a></h1>
+<p><strong>Usage</strong></p>
+<div class="highlight-chapel notranslate"><div class="highlight"><pre><span></span><span class="k">use</span> <span class="nx">Prometheus</span><span class="p">.</span><span class="nx">Core</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-chapel notranslate"><div class="highlight"><pre><span></span><span class="k">import</span> <span class="nx">Prometheus</span><span class="p">.</span><span class="nx">Core</span><span class="p">;</span>
+</pre></div>
+</div>
+<dl class="chpl data">
+<dt class="sig sig-object chpl" id="Core.server">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">server</span></span><em class="property"> <span class="pre">:</span> <span class="pre">metricServer</span></em><a class="headerlink" href="#Core.server" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl data">
+<dt class="sig sig-object chpl" id="Core.started">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">started</span></span><span class="w"> </span><em class="property"> <span class="pre">=</span> <span class="pre">false</span></em><a class="headerlink" href="#Core.started" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl data">
+<dt class="sig sig-object chpl" id="Core.unitTest">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">unitTest</span></span><span class="w"> </span><em class="property"> <span class="pre">=</span> <span class="pre">false</span></em><a class="headerlink" href="#Core.unitTest" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl enum">
+<dt class="sig sig-object chpl" id="Core.relType">
+<em class="property"><span class="pre">enum</span> </em><span class="sig-name descname"><span class="pre">relType</span></span><span class="w"> </span><em class="property"> <span class="pre">{</span> <span class="pre">standalone,</span> <span class="pre">parent,</span> <span class="pre">child</span> <span class="pre">}</span></em><a class="headerlink" href="#Core.relType" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl enumconstant">
+<dt class="sig sig-object chpl" id="Core.relType.standalone">
+<em class="property"><span class="pre">enum</span> <span class="pre">constant</span> </em><span class="sig-name descname"><span class="pre">standalone</span></span><a class="headerlink" href="#Core.relType.standalone" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl enumconstant">
+<dt class="sig sig-object chpl" id="Core.relType.parent">
+<em class="property"><span class="pre">enum</span> <span class="pre">constant</span> </em><span class="sig-name descname"><span class="pre">parent</span></span><a class="headerlink" href="#Core.relType.parent" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl enumconstant">
+<dt class="sig sig-object chpl" id="Core.relType.child">
+<em class="property"><span class="pre">enum</span> <span class="pre">constant</span> </em><span class="sig-name descname"><span class="pre">child</span></span><a class="headerlink" href="#Core.relType.child" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl record">
+<dt class="sig sig-object chpl" id="Core.metricServer">
+<em class="property"><span class="pre">record</span> </em><span class="sig-name descname"><span class="pre">metricServer</span></span><a class="headerlink" href="#Core.metricServer" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.metricServer.host">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">host</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span></em><a class="headerlink" href="#Core.metricServer.host" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.metricServer.port">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">port</span></span><em class="property"> <span class="pre">:</span> <span class="pre">uint(16)</span></em><a class="headerlink" href="#Core.metricServer.port" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.metricServer.running">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">running</span></span><em class="property"> <span class="pre">:</span> <span class="pre">atomic</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">false</span></em><a class="headerlink" href="#Core.metricServer.running" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.metricServer.responseGauge">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">responseGauge</span></span><em class="property"> <span class="pre">:</span> <span class="pre">shared</span> <span class="pre">Gauge?</span></em><a class="headerlink" href="#Core.metricServer.responseGauge" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.metricServer.unitTest">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">unitTest</span></span><em class="property"> <span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#Core.metricServer.unitTest" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.metricServer.init">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Core.metricServer.init" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">host:</span> <span class="pre">string</span></em>, <em class="sig-param"><span class="pre">port:</span> <span class="pre">uint(16)</span></em>, <em class="sig-param"><span class="pre">metaMetrics:</span> <span class="pre">bool</span></em>, <em class="sig-param"><span class="pre">unitTest:</span> <span class="pre">bool</span></em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.metricServer.deinit">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-name descname"><span class="pre">deinit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Core.metricServer.deinit" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.metricServer.start">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Core.metricServer.start" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.metricServer.stop">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Core.metricServer.stop" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.metricServer.serve">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-name descname"><span class="pre">serve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Core.metricServer.serve" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl record">
+<dt class="sig sig-object chpl" id="Core.collectorRegistry">
+<em class="property"><span class="pre">record</span> </em><span class="sig-name descname"><span class="pre">collectorRegistry</span></span><a class="headerlink" href="#Core.collectorRegistry" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.collectorRegistry.collectors">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">collectors</span></span><em class="property"> <span class="pre">:</span> <span class="pre">list(borrowed</span> <span class="pre">Collector)</span></em><a class="headerlink" href="#Core.collectorRegistry.collectors" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.collectorRegistry.collectMetrics">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">collectMetrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Core.collectorRegistry.collectMetrics" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.collectorRegistry.register">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">c</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Core.collectorRegistry.register" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.collectorRegistry.unregister">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">unregister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">c</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Core.collectorRegistry.unregister" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl record">
+<dt class="sig sig-object chpl" id="Core.Sample">
+<em class="property"><span class="pre">record</span> </em><span class="sig-name descname"><span class="pre">Sample</span></span><em class="property"> <span class="pre">:</span> <span class="pre">writeSerializable</span></em><a class="headerlink" href="#Core.Sample" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.Sample.name">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span></em><a class="headerlink" href="#Core.Sample.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.Sample.labelMap">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">labelMap</span></span><em class="property"> <span class="pre">:</span> <span class="pre">map(string,</span> <span class="pre">string)</span></em><a class="headerlink" href="#Core.Sample.labelMap" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.Sample.value">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">value</span></span><em class="property"> <span class="pre">:</span> <span class="pre">real</span></em><a class="headerlink" href="#Core.Sample.value" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.Sample.desc">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">desc</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em><a class="headerlink" href="#Core.Sample.desc" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.Sample.pType">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">pType</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em><a class="headerlink" href="#Core.Sample.pType" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.Sample.helpName">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">helpName</span></span><em class="property"> <span class="pre">:</span> <span class="pre">string</span> <span class="pre">=</span> <span class="pre">&quot;&quot;</span></em><a class="headerlink" href="#Core.Sample.helpName" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.Sample.timestamp">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">timestamp</span></span><span class="w"> </span><em class="property"> <span class="pre">=</span> <span class="pre">-1</span></em><a class="headerlink" href="#Core.Sample.timestamp" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.Sample.serialize">
+<em class="property"><span class="pre">proc</span> </em><span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">writer:</span> <span class="pre">fileWriter(?)</span></em>, <em class="sig-param"><span class="pre">ref</span> <span class="pre">serializer</span></em><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">throws</span></em><a class="headerlink" href="#Core.Sample.serialize" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl record">
+<dt class="sig sig-object chpl" id="Core.partialSample">
+<em class="property"><span class="pre">record</span> </em><span class="sig-name descname"><span class="pre">partialSample</span></span><a class="headerlink" href="#Core.partialSample" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.partialSample.m">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">m</span></span><em class="property"> <span class="pre">:</span> <span class="pre">map(string,</span> <span class="pre">string)</span></em><a class="headerlink" href="#Core.partialSample.m" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.partialSample.v">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">v</span></span><em class="property"> <span class="pre">:</span> <span class="pre">real</span></em><a class="headerlink" href="#Core.partialSample.v" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl record">
+<dt class="sig sig-object chpl" id="Core.labeledChildrenCache">
+<em class="property"><span class="pre">record</span> </em><span class="sig-name descname"><span class="pre">labeledChildrenCache</span></span><a class="headerlink" href="#Core.labeledChildrenCache" title="Link to this definition">¶</a></dt>
+<dd><dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.labeledChildrenCache.t">
+<em class="property"><span class="pre">type</span> </em><span class="sig-name descname"><span class="pre">t</span></span><a class="headerlink" href="#Core.labeledChildrenCache.t" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl attribute">
+<dt class="sig sig-object chpl" id="Core.labeledChildrenCache.cache">
+<em class="property"><span class="pre">var</span> </em><span class="sig-name descname"><span class="pre">cache</span></span><em class="property"> <span class="pre">:</span> <span class="pre">map(bytes,</span> <span class="pre">t)</span></em><a class="headerlink" href="#Core.labeledChildrenCache.cache" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="chpl itermethod">
+<dt class="sig sig-object chpl" id="Core.labeledChildrenCache.these">
+<em class="property"><span class="pre">iter</span> </em><span class="sig-prename descclassname"><span class="pre">labeledChildrenCache.</span></span><span class="sig-name descname"><span class="pre">these</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">ref</span></em><a class="headerlink" href="#Core.labeledChildrenCache.these" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl itermethod">
+<dt class="sig sig-object chpl" id="Core.labeledChildrenCache.partialSamples">
+<em class="property"><span class="pre">iter</span> </em><span class="sig-prename descclassname"><span class="pre">labeledChildrenCache.</span></span><span class="sig-name descname"><span class="pre">partialSamples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">ref</span></em><a class="headerlink" href="#Core.labeledChildrenCache.partialSamples" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl" id="Core.labeledChildrenCache.labels">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-prename descclassname"><span class="pre">labeledChildrenCache.</span></span><span class="sig-name descname"><span class="pre">labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ref</span> <span class="pre">l:</span> <span class="pre">map(string</span></em>, <em class="sig-param"><span class="pre">string)</span></em><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">ref</span></em><a class="headerlink" href="#Core.labeledChildrenCache.labels" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="chpl method">
+<dt class="sig sig-object chpl">
+<em class="property"><span class="pre">proc</span> <span class="pre">ref</span> </em><span class="sig-prename descclassname"><span class="pre">labeledChildrenCache.</span></span><span class="sig-name descname"><span class="pre">labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">l:</span> <span class="pre">[]</span></em><span class="sig-paren">)</span><span class="w"> </span><em class="property"> <span class="pre">ref</span></em></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Collectors.html" class="btn btn-neutral float-left" title="Collectors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../../grafana.html" class="btn btn-neutral float-right" title="Using Grafana" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Engin Kayraklioglu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+ 
+
+
+
+</body>
+</html>
