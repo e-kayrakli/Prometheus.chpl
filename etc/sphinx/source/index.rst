@@ -15,7 +15,9 @@ Contents:
    :maxdepth: 1
    :glob:
 
-   modules/**
+   Standard Prometheus API <modules/src/Prometheus>
+   Standard Collectors API <modules/src/Prometheus/Collectors>
+   Using Grafana <grafana>
 
 
 Indices and tables

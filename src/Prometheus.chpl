@@ -401,7 +401,8 @@ module Prometheus {
     }
   }
 
-  module Core {
+  @chpldoc.nodoc
+  private module Core {
     use List;
     use Map;
     use IO;
@@ -414,6 +415,7 @@ module Prometheus {
     private config const debugPrometheus = true;
     private config const acceptTimeout = 20;
 
+    @chpldoc.nodoc
     var registry: collectorRegistry;
     var server: metricServer;
     var started = false;
