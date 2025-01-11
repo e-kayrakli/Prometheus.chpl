@@ -1,5 +1,8 @@
-chpldoc documentation
-=====================
+Prometheus Documentation
+========================
+
+Welcome to Prometheus.chpl documentation. This Mason package provides a
+Prometheus API for Chapel.
 
 Contents:
 

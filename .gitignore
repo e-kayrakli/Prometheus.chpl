@@ -1,2 +1,3 @@
 target/
 Mason.lock
+etc/sphinx/build

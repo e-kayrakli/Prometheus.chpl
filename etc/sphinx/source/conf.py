@@ -50,9 +50,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = os.environ.get('CHPLDOC_PROJECT_NAME', 'PROJECT NAME').strip()
+project = 'Prometheus'
 
-author_text = os.environ.get('CHPLDOC_AUTHOR', 'AUTHOR TEXT')
+author_text = 'Engin Kayraklioglu'
 
 copyright_year = os.environ.get('CHPLDOC_COPYRIGHT_YEAR', datetime.now().year)
 
