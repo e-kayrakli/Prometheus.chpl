@@ -4,7 +4,6 @@ version="0.1.0"
 chplVersion="2.4.0"
 license="None"
 type="library"
-author="Engin Kayraklioglu"
 
 [dependencies]
 
