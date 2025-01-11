@@ -1,3 +1,6 @@
+/*
+  This is a Prometheus API implementation in Chapel.
+ */
 module Prometheus {
 
   use List, Map;
