@@ -99,7 +99,6 @@ module Prometheus {
       // I wanted an iterator, but there are some issues:
       // https://github.com/chapel-lang/chapel/issues/26478
       proc collect() throws {
-        writeln("in Collector.collect rel ", this.rel);
         if this.rel==relType.parent {
           return [sample in childrenSamples()] new Sample(this.name,
                                                           sample.m,
@@ -118,12 +117,13 @@ module Prometheus {
                            this.desc, this.pType),];
       }
 
-      // TODO these iterators needed to be ref. Why?
+      // I am not sure if this should have a ref return intent, but the compiler
+      // wants it. https://github.com/chapel-lang/chapel/issues/26483
       iter childrenSamples() ref {
-        writeln("in Collector.childrenSample");
         var dummy: partialSample;
         yield dummy;
-        // TODO throw?
+        // Want to throw, but can't throw from an overridden iterator
+        // https://github.com/chapel-lang/chapel/issues/26478
       }
     }
 
@@ -272,8 +272,6 @@ module Prometheus {
     }
 
     class HistogramTimer: Histogram, contextManager {
-      // TODO use/import in class definition is a syntax error
-
       type contextReturnType = nothing;
       var timer: stopwatch;
 
@@ -281,8 +279,8 @@ module Prometheus {
         super.init(name, buckets, desc, register);
       }
 
-      // TODO shouldn't these have ref this intent? I can't make that work with
-      // context managers
+      // Note that class methods can't have `ref` this intent today.
+      // https://github.com/chapel-lang/chapel/issues/23277
       proc enterContext(): contextReturnType {
         timer.clear();
         timer.start();
@@ -295,7 +293,7 @@ module Prometheus {
       }
     }
 
-    // TODO can't make this a class+context, so can't make it extend Collector...
+    // TODO remove in favor of HistogramTimer
     class ManagedTimer: contextManager {
       var name: string;
 
@@ -362,8 +360,6 @@ module Prometheus {
 
       proc postinit() { this.pType = "gauge"; }
 
-      // TODO I wanted to have these `compilerError`, but apparently we compile
-      // them and can't use that in lieu of ` = delete` in CPP
       override proc inc(v: real) {writeln("Can't call UsedMemGauge.inc");}
       override proc inc()        {writeln("Can't call UsedMemGauge.inc");}
 
@@ -450,7 +446,6 @@ module Prometheus {
 
       proc ref start() {
         import currentTask;
-        // TODO wanted to catch this or throw. Neither is supported right now.
         begin with (ref this) { serve(); }
         while this.running.read() == false {
           currentTask.yieldExecution();
@@ -458,7 +453,6 @@ module Prometheus {
       }
 
       proc ref stop() {
-        // TODO do we need to make sure that the server moves past accept()?
         this.running.write(false);
       }
 
@@ -483,7 +477,8 @@ module Prometheus {
           while running.read() {
             if responseGauge != nil then responseGauge!.set(t.elapsed()*1000);
             t.clear();
-            // TODO accept that takes a real argument is not working
+            // TODO timeout should be caught and handled such that we keep
+            // accepting
             var comm = listener.accept(new struct_timeval(acceptTimeout, 0));
 
             t.start();
